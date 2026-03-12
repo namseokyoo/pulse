@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pulse Feed</title>
+  <style>
+    :root {
+      --background: #0A0A0A;
+      --surface: #141414;
+      --surface-elevated: #1E1E1E;
+      --primary: #FF4444;
+      --primary-dim: rgba(255, 68, 68, 0.15);
+      --like: #22C55E;
+      --dislike: #EF4444;
+      --text-primary: #FFFFFF;
+      --text-secondary: #A0A0A0;
+      --text-muted: #606060;
+      --border: #2A2A2A;
+      --vitality-high: #22C55E;
+      --vitality-mid: #F59E0B;
+      --vitality-low: #EF4444;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: var(--background);
+      color: var(--text-primary);
+      font-family: system-ui, -apple-system, "Pretendard", sans-serif;
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+    }
+
+    .screen {
+      width: 375px;
+      height: 812px;
+      padding: 20px 18px 20px;
+      background:
+        radial-gradient(circle at 80% 0%, rgba(255, 68, 68, 0.18), transparent 26%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 16%),
+        var(--background);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .topbar {
+      padding: 18px 0 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: 0.18em;
+    }
+
+    .logo-mark {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, #ff7777, var(--primary) 50%, #8b1010 100%);
+      box-shadow: 0 0 20px rgba(255, 68, 68, 0.42);
+    }
+
+    .ticket {
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: rgba(34, 197, 94, 0.12);
+      color: #8df2b0;
+      font-size: 13px;
+      font-weight: 700;
+      border: 1px solid rgba(34, 197, 94, 0.18);
+    }
+
+    .tabs {
+      display: flex;
+      gap: 18px;
+      padding: 8px 0 18px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      overflow: hidden;
+    }
+
+    .tab {
+      position: relative;
+      padding-bottom: 10px;
+      color: var(--text-secondary);
+      font-size: 13px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .tab.active {
+      color: var(--text-primary);
+    }
+
+    .tab.active::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 2px;
+      border-radius: 999px;
+      background: var(--primary);
+      box-shadow: 0 0 14px rgba(255, 68, 68, 0.45);
+    }
+
+    .feed {
+      padding-top: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      flex: 1;
+    }
+
+    .card {
+      border-radius: 22px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 120px), var(--surface);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      padding: 18px;
+      box-shadow: 0 16px 34px rgba(0, 0, 0, 0.28);
+    }
+
+    .card-title {
+      margin: 0 0 10px;
+      font-size: 18px;
+      line-height: 1.3;
+      font-weight: 700;
+    }
+
+    .card-copy {
+      margin: 0 0 16px;
+      color: var(--text-secondary);
+      font-size: 14px;
+      line-height: 1.55;
+      min-height: 44px;
+    }
+
+    .meta-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: var(--text-muted);
+      font-size: 12px;
+      margin-bottom: 10px;
+    }
+
+    .bar {
+      height: 8px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.06);
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+
+    .fill {
+      height: 100%;
+      border-radius: inherit;
+    }
+
+    .stats {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .stats strong {
+      color: var(--text-primary);
+      font-weight: 700;
+    }
+
+    .votes {
+      display: flex;
+      gap: 14px;
+    }
+
+    .votes span:first-child {
+      color: var(--like);
+    }
+
+    .votes span:last-child {
+      color: #ff7676;
+    }
+
+    .fab {
+      position: absolute;
+      right: 20px;
+      bottom: 96px;
+      width: 58px;
+      height: 58px;
+      border-radius: 20px;
+      border: 0;
+      background: linear-gradient(180deg, #ff6565, var(--primary));
+      color: #fff;
+      font-size: 30px;
+      box-shadow: 0 18px 36px rgba(255, 68, 68, 0.35);
+    }
+
+    .bottom-nav {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      padding: 12px;
+      border-radius: 24px;
+      background: rgba(20, 20, 20, 0.94);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      backdrop-filter: blur(10px);
+    }
+
+    .nav-item {
+      text-align: center;
+      padding: 12px 0;
+      border-radius: 16px;
+      color: var(--text-secondary);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .nav-item.active {
+      background: rgba(255, 68, 68, 0.12);
+      color: var(--text-primary);
+    }
+  </style>
+</head>
+<body>
+  <main class="screen">
+    <header class="topbar">
+      <div class="logo"><span class="logo-mark" aria-hidden="true"></span>PULSE</div>
+      <div class="ticket">💚 투표권 50개</div>
+    </header>
+
+    <nav class="tabs" aria-label="정렬">
+      <div class="tab active">최신순</div>
+      <div class="tab">생명력 적은순</div>
+      <div class="tab">생명력 많은순</div>
+    </nav>
+
+    <section class="feed">
+      <article class="card">
+        <h2 class="card-title">오늘 야근 끝나고 본 새벽의 한강이 꽤 위로가 됐다</h2>
+        <p class="card-copy">집에 바로 들어가기 싫어서 잠깐 걸었는데, 생각보다 차갑지 않은 공기가 하루를 정리해줬다.</p>
+        <div class="meta-row"><span>새벽산책러</span><span>5h 30m 남음</span></div>
+        <div class="bar"><div class="fill" style="width: 75%; background: linear-gradient(90deg, #4ade80, var(--vitality-high));"></div></div>
+        <div class="stats"><strong>생명력 75%</strong><div class="votes"><span>좋아요 42</span><span>싫어요 3</span></div></div>
+      </article>
+
+      <article class="card">
+        <h2 class="card-title">출근길 2호선에서 다들 너무 지쳐 보여서 마음이 복잡했다</h2>
+        <p class="card-copy">서 있는 사람들 표정을 보는데 이상하게 다 비슷해서, 이 도시가 사람을 어떻게 쓰는지 보이는 기분이었다.</p>
+        <div class="meta-row"><span>회색정거장</span><span>2h 24m 남음</span></div>
+        <div class="bar"><div class="fill" style="width: 40%; background: linear-gradient(90deg, #fbbf24, var(--vitality-mid));"></div></div>
+        <div class="stats"><strong>생명력 40%</strong><div class="votes"><span>좋아요 18</span><span>싫어요 11</span></div></div>
+      </article>
+
+      <article class="card">
+        <h2 class="card-title">내가 만든 사이드프로젝트를 결국 접기로 했다</h2>
+        <p class="card-copy">몇 달을 붙잡고 있었는데 더는 숨 붙여둘 이유가 안 보인다. 대신 왜 시작했는지는 오래 기억하고 싶다.</p>
+        <div class="meta-row"><span>코드유령</span><span>54m 남음</span></div>
+        <div class="bar"><div class="fill" style="width: 15%; background: linear-gradient(90deg, #fb7185, var(--vitality-low));"></div></div>
+        <div class="stats"><strong>생명력 15%</strong><div class="votes"><span>좋아요 6</span><span>싫어요 19</span></div></div>
+      </article>
+    </section>
+
+    <button class="fab" type="button" aria-label="새 글 작성">+</button>
+
+    <footer class="bottom-nav">
+      <div class="nav-item active">피드</div>
+      <div class="nav-item">프로필</div>
+    </footer>
+  </main>
+</body>
+</html>

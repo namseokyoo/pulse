@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pulse Profile</title>
+  <style>
+    :root {
+      --background: #0A0A0A;
+      --surface: #141414;
+      --surface-elevated: #1E1E1E;
+      --primary: #FF4444;
+      --text-primary: #FFFFFF;
+      --text-secondary: #A0A0A0;
+      --text-muted: #606060;
+      --border: #2A2A2A;
+      --vitality-high: #22C55E;
+      --vitality-mid: #F59E0B;
+      --vitality-low: #EF4444;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: var(--background);
+      color: var(--text-primary);
+      font-family: system-ui, -apple-system, "Pretendard", sans-serif;
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+    }
+
+    .screen {
+      width: 375px;
+      height: 812px;
+      padding: 24px 20px 20px;
+      display: flex;
+      flex-direction: column;
+      background:
+        radial-gradient(circle at 15% 5%, rgba(255, 68, 68, 0.16), transparent 22%),
+        var(--background);
+    }
+
+    .profile-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 12px;
+      margin-bottom: 24px;
+    }
+
+    .profile-head h1 {
+      margin: 0;
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+    }
+
+    .edit {
+      width: 40px;
+      height: 40px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-secondary);
+      font-size: 18px;
+    }
+
+    .ticket-card {
+      padding: 22px;
+      border-radius: 24px;
+      background: linear-gradient(180deg, rgba(34, 197, 94, 0.12), rgba(255, 255, 255, 0.02)), var(--surface);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.3);
+      margin-bottom: 24px;
+    }
+
+    .ticket-card span {
+      color: #8df2b0;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .ticket-card strong {
+      display: block;
+      margin-top: 10px;
+      font-size: 31px;
+      letter-spacing: -0.04em;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 22px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      margin-bottom: 16px;
+    }
+
+    .tab {
+      position: relative;
+      color: var(--text-secondary);
+      font-size: 15px;
+      font-weight: 700;
+      padding-bottom: 10px;
+    }
+
+    .tab.active {
+      color: var(--text-primary);
+    }
+
+    .tab.active::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 2px;
+      border-radius: 999px;
+      background: var(--primary);
+    }
+
+    .post-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .post {
+      padding: 18px;
+      border-radius: 20px;
+      background: var(--surface);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    .post h2 {
+      margin: 0 0 12px;
+      font-size: 16px;
+      line-height: 1.4;
+    }
+
+    .bar {
+      height: 8px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.06);
+      overflow: hidden;
+      margin-bottom: 10px;
+    }
+
+    .fill {
+      height: 100%;
+      border-radius: inherit;
+    }
+
+    .meta {
+      display: flex;
+      justify-content: space-between;
+      color: var(--text-secondary);
+      font-size: 13px;
+    }
+
+    .divider {
+      margin: 18px 0;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .dead-note {
+      color: var(--text-muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+  <main class="screen">
+    <header class="profile-head">
+      <h1>달빛나그네</h1>
+      <div class="edit" aria-label="프로필 수정">✎</div>
+    </header>
+
+    <section class="ticket-card">
+      <span>💚 투표권 잔액</span>
+      <strong>48개</strong>
+    </section>
+
+    <nav class="tabs">
+      <div class="tab active">살아있는 글(3)</div>
+      <div class="tab">죽은 글(7)</div>
+    </nav>
+
+    <section class="post-list">
+      <article class="post">
+        <h2>비 오는 새벽에 듣는 음악은 시간을 조금 천천히 가게 만든다</h2>
+        <div class="bar"><div class="fill" style="width: 82%; background: linear-gradient(90deg, #4ade80, var(--vitality-high));"></div></div>
+        <div class="meta"><span>생명력 82%</span><span>5h 44m 남음</span></div>
+      </article>
+
+      <article class="post">
+        <h2>오늘도 할 일을 다 끝내진 못했지만 그래도 포기하진 않았다</h2>
+        <div class="bar"><div class="fill" style="width: 53%; background: linear-gradient(90deg, #fbbf24, var(--vitality-mid));"></div></div>
+        <div class="meta"><span>생명력 53%</span><span>3h 08m 남음</span></div>
+      </article>
+
+      <article class="post">
+        <h2>오래 연락 못한 친구에게 먼저 안부를 보냈다</h2>
+        <div class="bar"><div class="fill" style="width: 19%; background: linear-gradient(90deg, #fb7185, var(--vitality-low));"></div></div>
+        <div class="meta"><span>생명력 19%</span><span>1h 02m 남음</span></div>
+      </article>
+    </section>
+
+    <div class="divider"></div>
+    <div class="dead-note">죽은 글 탭에서는 생명력이 다한 기록들을 다시 볼 수 있습니다.</div>
+  </main>
+</body>
+</html>
