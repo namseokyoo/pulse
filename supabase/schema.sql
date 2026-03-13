@@ -422,15 +422,15 @@ $$ LANGUAGE plpgsql;
 -- Trigger: 신규 유저 프로필 자동 생성
 -- ============================================================
 
-CREATE OR REPLACE FUNCTION handle_new_user()
+CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO profiles (id, nickname)
-  VALUES (NEW.id, generate_random_nickname())
+  INSERT INTO public.profiles (id, nickname)
+  VALUES (NEW.id, public.generate_random_nickname())
   ON CONFLICT (id) DO NOTHING;
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
