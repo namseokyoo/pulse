@@ -2,11 +2,13 @@
 
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { BottomNav } from "@/components/layout/BottomNav";
 import { VitalityBar } from "@/components/pulse/VitalityBar";
 import { VitalityTimer } from "@/components/pulse/VitalityTimer";
 import { VoteButton } from "@/components/pulse/VoteButton";
 import { CommentItem } from "@/components/pulse/CommentItem";
 import { ReportModal } from "@/components/pulse/ReportModal";
+import { VoteBalance } from "@/components/pulse/VoteBalance";
 import { createClient } from "@/lib/supabase/client";
 import { calculateVitality } from "@/lib/utils/vitality";
 import { cn } from "@/lib/utils/format";
@@ -142,7 +144,7 @@ export function PostDetailClient({ post: initialPost, comments: initialComments,
     <div className="min-h-screen bg-[var(--color-background)]">
       {/* 헤더 */}
       <header className="sticky top-0 z-20 bg-[var(--color-background)]/90 backdrop-blur-sm border-b border-[var(--color-border)]">
-        <div className="mx-auto max-w-[680px] px-4 h-14 flex items-center">
+        <div className="mx-auto max-w-[680px] px-4 h-14 flex items-center justify-between">
           <button
             onClick={() => router.back()}
             className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-md text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors"
@@ -152,10 +154,19 @@ export function PostDetailClient({ post: initialPost, comments: initialComments,
               <polyline points="15 18 9 12 15 6" />
             </svg>
           </button>
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-full bg-[var(--color-primary)] flex items-center justify-center" aria-hidden="true">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+              </svg>
+            </div>
+            <span className="text-[18px] font-bold tracking-[0.05em] text-[var(--color-text-primary)]">PULSE</span>
+          </div>
+          <VoteBalance balance={balance} variant="compact" />
         </div>
       </header>
 
-      <main className="mx-auto max-w-[680px] px-4 pb-12">
+      <main className="mx-auto max-w-[680px] px-4 pb-24">
         {/* 생명력 카드 */}
         <div className="mt-4 mb-6 p-4 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)]">
           <p className="text-[13px] text-[var(--color-text-muted)] mb-2">생명력</p>
@@ -277,6 +288,8 @@ export function PostDetailClient({ post: initialPost, comments: initialComments,
         onClose={() => setReportTarget(null)}
         onSubmit={handleReport}
       />
+
+      <BottomNav />
     </div>
   );
 }

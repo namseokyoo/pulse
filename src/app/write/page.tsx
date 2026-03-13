@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { PostForm } from "@/components/pulse/PostForm";
 import type { PostFormValues } from "@/components/pulse/PostForm";
+import { BottomNav } from "@/components/layout/BottomNav";
 import { createClient } from "@/lib/supabase/client";
 
 export default function WritePage() {
@@ -72,12 +73,14 @@ export default function WritePage() {
       </header>
 
       {/* 폼 */}
-      <main className="mx-auto max-w-[680px] w-full px-4 py-4 flex-1 flex flex-col">
+      <main className="mx-auto max-w-[680px] w-full px-4 py-4 pb-24 flex-1 flex flex-col">
         {error && (
           <p className="text-[13px] text-[var(--color-danger)] mb-4">{error}</p>
         )}
         <PostForm onSubmit={handleSubmit} maxLength={500} isSubmitting={isSubmitting} />
       </main>
+
+      <BottomNav />
     </div>
   );
 }

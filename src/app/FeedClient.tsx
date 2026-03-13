@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import Link from "next/link";
 import { FilterTabs } from "@/components/pulse/FilterTabs";
 import { PostList } from "@/components/pulse/PostList";
 import { VoteBalance } from "@/components/pulse/VoteBalance";
@@ -78,18 +77,6 @@ export function FeedClient({ initialPosts, balance }: FeedClientProps) {
         {/* 글 목록 */}
         <PostList posts={alivePosts} type="alive" empty={alivePosts.length === 0} />
       </main>
-
-      {/* FAB — 글쓰기 */}
-      <Link
-        href="/write"
-        className="fixed bottom-20 right-4 w-14 h-14 rounded-full bg-[var(--color-primary)] flex items-center justify-center text-white text-2xl shadow-[var(--shadow-glow-primary)] z-20 transition-transform active:scale-95 hover:scale-105"
-        aria-label="새 글 작성"
-      >
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          <line x1="12" y1="5" x2="12" y2="19" />
-          <line x1="5" y1="12" x2="19" y2="12" />
-        </svg>
-      </Link>
 
       {/* 하단 네비 */}
       <BottomNav />
