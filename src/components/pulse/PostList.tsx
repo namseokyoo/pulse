@@ -1,5 +1,6 @@
 "use client";
 
+import { ThumbsDown, ThumbsUp } from "lucide-react";
 import { PostCard } from "./PostCard";
 import type { PostType } from "@/types";
 
@@ -12,7 +13,7 @@ export interface PostListProps {
 
 function SkeletonCard() {
   return (
-    <div className="rounded-xl border border-white/5 bg-[var(--color-surface)] p-md shadow-[var(--shadow-card)] animate-pulse">
+    <div className="rounded-xl border border-white/5 bg-[var(--color-surface)] p-5 shadow-[var(--shadow-card)] animate-pulse">
       <div className="h-5 bg-white/8 rounded mb-2 w-3/4" />
       <div className="h-4 bg-white/5 rounded mb-1 w-full" />
       <div className="h-4 bg-white/5 rounded mb-3 w-2/3" />
@@ -27,27 +28,40 @@ function SkeletonCard() {
 
 function DeadPostItem({ post }: { post: PostType }) {
   return (
-    <div className="rounded-xl border border-white/5 bg-[var(--color-surface)] p-md opacity-60">
-      <h3 className="text-[16px] font-semibold text-[var(--color-text-secondary)] mb-2">
-        {post.title}
-      </h3>
+    <div className="rounded-xl border border-white/5 bg-[var(--color-surface)] p-5 opacity-60">
+      <div className="flex items-start justify-between gap-3 mb-2">
+        <h3 className="text-[16px] font-semibold text-[var(--color-text-secondary)] flex-1 min-w-0">
+          {post.title}
+        </h3>
+        <div className="flex items-center gap-3 shrink-0 pt-0.5">
+          {post.likes > 0 && (
+            <span className="flex items-center gap-1 text-[var(--color-like)]">
+              <ThumbsUp size={14} />
+              <span className="text-[13px] tabular-nums">{post.likes}</span>
+            </span>
+          )}
+          {post.dislikes > 0 && (
+            <span className="flex items-center gap-1 text-[var(--color-dislike)]">
+              <ThumbsDown size={14} />
+              <span className="text-[13px] tabular-nums">{post.dislikes}</span>
+            </span>
+          )}
+        </div>
+      </div>
       <div className="mb-2">
         <div className="w-full h-2 rounded-full bg-white/5">
           <div className="h-full w-0 rounded-full bg-[var(--color-vitality-critical)]" />
         </div>
       </div>
-      <div className="flex items-center gap-4 text-[13px] text-[var(--color-text-muted)]">
-        <span>생명력 0%</span>
-        {post.likes > 0 && <span className="text-[var(--color-like)]">좋아요 {post.likes}</span>}
-        {post.dislikes > 0 && <span className="text-[var(--color-dislike)]">싫어요 {post.dislikes}</span>}
-        {post.survivedMinutes !== undefined && (
+      {post.survivedMinutes !== undefined && (
+        <div className="text-[13px] text-[var(--color-text-muted)]">
           <span>
             {Math.floor(post.survivedMinutes / 60) > 0
               ? `${Math.floor(post.survivedMinutes / 60)}h ${post.survivedMinutes % 60}m 생존`
               : `${post.survivedMinutes}m 생존`}
           </span>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
