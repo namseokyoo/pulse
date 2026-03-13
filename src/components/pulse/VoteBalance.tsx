@@ -16,7 +16,7 @@ export function VoteBalance({ balance, variant = "compact" }: VoteBalanceProps) 
   }
 
   return (
-    <div className="rounded-xl p-lg bg-[rgba(34,197,94,0.08)] border border-[rgba(34,197,94,0.2)]">
+    <div className="rounded-xl p-5 bg-[rgba(34,197,94,0.08)] border border-[rgba(34,197,94,0.2)]">
       <p className="text-[13px] text-[var(--color-text-muted)] mb-1 flex items-center gap-1">
         <span aria-hidden="true">♥</span>
         투표권 잔액

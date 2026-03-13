@@ -60,7 +60,7 @@ export function PostForm({ onSubmit, maxLength = 500, isSubmitting = false }: Po
       />
 
       {/* 생명력 안내 박스 */}
-      <div className="rounded-xl border border-[rgba(255,68,68,0.25)] bg-[var(--color-primary-dim)] p-md">
+      <div className="rounded-xl border border-[rgba(255,68,68,0.25)] bg-[var(--color-primary-dim)] p-5">
         <p className="text-[14px] font-semibold text-[var(--color-primary)] mb-1">
           ♥ 이 글은 6시간의 생명력을 갖고 태어납니다
         </p>

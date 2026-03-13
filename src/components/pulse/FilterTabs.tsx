@@ -22,7 +22,7 @@ export function FilterTabs({ options, selected, onChange }: FilterTabsProps) {
               "relative flex-shrink-0 min-h-[44px] px-4 text-[14px] font-semibold transition-colors duration-100",
               isActive
                 ? "text-[var(--color-text-primary)]"
-                : "text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)]"
+                : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
             )}
             aria-selected={isActive}
             role="tab"
