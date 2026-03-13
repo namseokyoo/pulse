@@ -6,8 +6,10 @@
 -- ============================================================
 -- Extensions
 -- ============================================================
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-CREATE EXTENSION IF NOT EXISTS pg_cron;
+-- uuid-ossp: use gen_random_uuid() (built-in, no extension needed in Supabase)
+-- NOTE: pg_cron must be enabled manually via Supabase Dashboard
+-- Extensions -> pg_cron -> Enable
+-- After enabling, run migration 20260313000002_pg_cron_jobs.sql
 
 -- ============================================================
 -- Tables
@@ -26,7 +28,7 @@ CREATE TABLE IF NOT EXISTS profiles (
 
 -- 게시글
 CREATE TABLE IF NOT EXISTS posts (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   author_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
   title TEXT NOT NULL CHECK (char_length(title) <= 100),
   content TEXT NOT NULL CHECK (char_length(content) <= 500),
@@ -42,7 +44,7 @@ CREATE TABLE IF NOT EXISTS posts (
 
 -- 댓글
 CREATE TABLE IF NOT EXISTS comments (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   post_id UUID NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
   parent_id UUID REFERENCES comments(id) ON DELETE CASCADE,
   author_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
@@ -52,7 +54,7 @@ CREATE TABLE IF NOT EXISTS comments (
 
 -- 투표 로그
 CREATE TABLE IF NOT EXISTS vote_logs (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
   post_id UUID NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
   vote_type TEXT NOT NULL CHECK (vote_type IN ('like', 'dislike')),
@@ -63,7 +65,7 @@ CREATE TABLE IF NOT EXISTS vote_logs (
 
 -- 투표권 변동 이력 (append-only ledger)
 CREATE TABLE IF NOT EXISTS vote_balance_logs (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
   change_type TEXT NOT NULL CHECK (change_type IN ('daily_reset', 'vote_spend', 'purchase', 'refund')),
   free_change INTEGER NOT NULL DEFAULT 0,
@@ -76,7 +78,7 @@ CREATE TABLE IF NOT EXISTS vote_balance_logs (
 
 -- 신고
 CREATE TABLE IF NOT EXISTS reports (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   reporter_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
   target_type TEXT NOT NULL CHECK (target_type IN ('post', 'comment')),
   target_id UUID NOT NULL,
@@ -121,50 +123,6 @@ BEGIN
   END IF;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
-
--- ============================================================
--- pg_cron: 1분마다 만료 글 스윕
--- ============================================================
-
-SELECT cron.schedule(
-  'pulse-ttl-sweep',
-  '* * * * *',
-  $$
-    UPDATE posts
-    SET is_dead = TRUE, dead_at = NOW()
-    WHERE is_dead = FALSE
-      AND expires_at <= NOW();
-  $$
-);
-
--- ============================================================
--- pg_cron: 매일 정오(KST 12:00 = UTC 03:00) 무료 투표권 리셋
--- ============================================================
-
-SELECT cron.schedule(
-  'pulse-vote-reset',
-  '0 3 * * *',
-  $$
-    WITH before AS (
-      SELECT id, free_votes AS old_free_votes, paid_votes
-      FROM profiles
-      WHERE free_votes < 10
-         OR free_votes_reset_at < NOW() - INTERVAL '20 hours'
-    ),
-    updated AS (
-      UPDATE profiles p
-      SET free_votes = 10,
-          free_votes_reset_at = NOW()
-      FROM before b
-      WHERE p.id = b.id
-      RETURNING p.id, p.paid_votes
-    )
-    INSERT INTO vote_balance_logs (user_id, change_type, free_change, paid_change, free_after, paid_after)
-    SELECT b.id, 'daily_reset', (10 - b.old_free_votes), 0, 10, b.paid_votes
-    FROM before b
-    JOIN updated u ON b.id = u.id;
-  $$
-);
 
 -- ============================================================
 -- Trigger: 투표 시 즉시 만료 체크

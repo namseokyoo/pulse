@@ -1,8 +1,6 @@
 "use client";
 
 import { PostCard } from "./PostCard";
-import { VitalityBar } from "./VitalityBar";
-import { VitalityTimer } from "./VitalityTimer";
 import type { PostType } from "@/types";
 
 export interface PostListProps {

@@ -6,7 +6,6 @@ import { ProfileHeader } from "@/components/pulse/ProfileHeader";
 import { FilterTabs } from "@/components/pulse/FilterTabs";
 import { PostList } from "@/components/pulse/PostList";
 import { BottomNav } from "@/components/layout/BottomNav";
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 import { createClient } from "@/lib/supabase/client";
 import type { PostType } from "@/types";
 

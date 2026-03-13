@@ -18,7 +18,6 @@ export function PostForm({ onSubmit, maxLength = 500, isSubmitting = false }: Po
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
 
-  const totalLength = title.length + content.length;
   const canSubmit = title.trim().length > 0 && content.trim().length > 0 && !isSubmitting;
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -28,7 +27,7 @@ export function PostForm({ onSubmit, maxLength = 500, isSubmitting = false }: Po
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4 flex-1">
+    <form id="post-form" onSubmit={handleSubmit} className="flex flex-col gap-4 flex-1">
       {/* 제목 */}
       <textarea
         value={title}
@@ -76,7 +75,7 @@ export function PostForm({ onSubmit, maxLength = 500, isSubmitting = false }: Po
       </div>
 
       {/* 제출 버튼 (모바일 헤더에서도 사용 가능하도록 hidden) */}
-      <button type="submit" className="hidden" />
+      <button id="post-form-submit" type="submit" className="hidden" />
     </form>
   );
 }

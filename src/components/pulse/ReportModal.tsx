@@ -21,24 +21,28 @@ const REPORT_OPTIONS: { value: ReportReason; label: string }[] = [
 export function ReportModal({ isOpen, onClose, onSubmit }: ReportModalProps) {
   const [selected, setSelected] = useState<ReportReason | null>(null);
   const [detail, setDetail] = useState("");
-  const [mounted, setMounted] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
-      setMounted(true);
+      const frame = requestAnimationFrame(() => {
+        setIsVisible(true);
+      });
       document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-      const timer = setTimeout(() => {
-        setMounted(false);
-        setSelected(null);
-        setDetail("");
-      }, 300);
-      return () => clearTimeout(timer);
+      return () => cancelAnimationFrame(frame);
     }
+
+    document.body.style.overflow = "";
+    const timer = setTimeout(() => {
+      setIsVisible(false);
+      setSelected(null);
+      setDetail("");
+    }, 300);
+
+    return () => clearTimeout(timer);
   }, [isOpen]);
 
-  if (!mounted) return null;
+  if (!isVisible) return null;
 
   const handleSubmit = () => {
     if (!selected) return;

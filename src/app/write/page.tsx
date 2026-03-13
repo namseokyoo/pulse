@@ -77,8 +77,6 @@ export default function WritePage() {
           <p className="text-[13px] text-[var(--color-danger)] mb-4">{error}</p>
         )}
         <PostForm onSubmit={handleSubmit} maxLength={500} isSubmitting={isSubmitting} />
-        {/* 숨김 제출 트리거 버튼 */}
-        <button id="post-form-submit" type="button" className="hidden" />
       </main>
     </div>
   );
