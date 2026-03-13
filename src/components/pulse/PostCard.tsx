@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { ThumbsDown, ThumbsUp } from "lucide-react";
 import { VitalityBar } from "./VitalityBar";
 import { VitalityTimer } from "./VitalityTimer";
 import { calculateVitality } from "@/lib/utils/vitality";
@@ -29,11 +28,11 @@ export function PostCard({ post }: PostCardProps) {
           </h2>
           <div className="flex items-center gap-3 shrink-0 pt-1">
             <span className="flex items-center gap-1 text-[var(--color-like)]">
-              <ThumbsUp size={14} />
+              <span aria-hidden="true">♥</span>
               <span className="text-[13px] tabular-nums">{post.likes}</span>
             </span>
             <span className="flex items-center gap-1 text-[var(--color-dislike)]">
-              <ThumbsDown size={14} />
+              <span aria-hidden="true">💔</span>
               <span className="text-[13px] tabular-nums">{post.dislikes}</span>
             </span>
           </div>

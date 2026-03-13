@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ProfileHeader } from "@/components/pulse/ProfileHeader";
 import { FilterTabs } from "@/components/pulse/FilterTabs";
@@ -68,14 +69,14 @@ export function ProfileClient({ nickname, balance, alivePosts, deadPosts, userId
     <div className="min-h-screen bg-[var(--color-background)]">
       <header className="sticky top-0 z-20 bg-[var(--color-background)]/90 backdrop-blur-sm border-b border-[var(--color-border)]">
         <div className="mx-auto max-w-[680px] px-4 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-2">
+          <Link href="/" className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-full bg-[var(--color-primary)] flex items-center justify-center" aria-hidden="true">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
               </svg>
             </div>
             <span className="text-[18px] font-bold tracking-[0.05em] text-[var(--color-text-primary)]">PULSE</span>
-          </div>
+          </Link>
           <VoteBalance balance={balance} variant="compact" />
         </div>
       </header>

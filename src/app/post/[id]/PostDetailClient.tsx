@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { BottomNav } from "@/components/layout/BottomNav";
 import { VitalityBar } from "@/components/pulse/VitalityBar";
@@ -154,14 +155,14 @@ export function PostDetailClient({ post: initialPost, comments: initialComments,
               <polyline points="15 18 9 12 15 6" />
             </svg>
           </button>
-          <div className="flex items-center gap-2">
+          <Link href="/" className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-full bg-[var(--color-primary)] flex items-center justify-center" aria-hidden="true">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
               </svg>
             </div>
             <span className="text-[18px] font-bold tracking-[0.05em] text-[var(--color-text-primary)]">PULSE</span>
-          </div>
+          </Link>
           <VoteBalance balance={balance} variant="compact" />
         </div>
       </header>
