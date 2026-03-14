@@ -45,6 +45,7 @@ export function PostDetailClient({ post: initialPost, comments: initialComments,
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
   const [reportTarget, setReportTarget] = useState<string | null>(null);
   const [voteError, setVoteError] = useState<string | null>(null);
+  const [pendingVote, setPendingVote] = useState<{ type: "like" | "dislike" } | null>(null);
 
   const vitality = calculateVitality(post.expiresAt);
 
@@ -175,9 +176,6 @@ export function PostDetailClient({ post: initialPost, comments: initialComments,
             <VitalityBar vitality={vitality} height={10} />
           </div>
           <VitalityTimer expiresAt={post.expiresAt} size="lg" />
-          <p className="text-[12px] text-[var(--color-text-muted)] mt-2">
-            좋아요를 받으면 +10분, 싫어요를 받으면 -10분
-          </p>
         </div>
 
         {/* 제목 */}
@@ -198,18 +196,18 @@ export function PostDetailClient({ post: initialPost, comments: initialComments,
         {/* 투표 버튼 */}
         {!post.isDead && (
           <div className="mb-6 space-y-3">
-            <div className="flex gap-3 flex-wrap">
+            <div className="flex gap-4 justify-center">
               <VoteButton
                 type="like"
                 count={post.likes}
                 disabled={!userId || balance === 0}
-                onVote={(amount) => handleVote("like", amount)}
+                onVote={() => setPendingVote({ type: "like" })}
               />
               <VoteButton
                 type="dislike"
                 count={post.dislikes}
                 disabled={!userId || balance === 0}
-                onVote={(amount) => handleVote("dislike", amount)}
+                onVote={() => setPendingVote({ type: "dislike" })}
               />
             </div>
             {balance === 0 && (
@@ -281,6 +279,51 @@ export function PostDetailClient({ post: initialPost, comments: initialComments,
           )}
         </section>
       </main>
+
+      {/* 투표 확인 모달 */}
+      {pendingVote && (
+        <>
+          <div
+            className="fixed inset-0 z-40 bg-black/60"
+            onClick={() => setPendingVote(null)}
+            aria-hidden="true"
+          />
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center px-6"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="vote-confirm-title"
+          >
+            <div className="w-full max-w-[320px] rounded-2xl bg-[var(--color-surface)] border border-[var(--color-border)] p-6 shadow-[var(--shadow-modal)]">
+              <h2 id="vote-confirm-title" className="text-[18px] font-semibold text-[var(--color-text-primary)] mb-3">
+                {pendingVote.type === "like" ? "♥ 좋아요" : "💔 싫어요"} 투표
+              </h2>
+              <p className="text-[14px] text-[var(--color-text-secondary)] mb-6">
+                투표권이 1장 소모됩니다.
+                <br />
+                현재 소유 투표권 {balance}장
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setPendingVote(null)}
+                  className="flex-1 py-3 rounded-xl border border-[var(--color-border)] text-[14px] font-semibold text-[var(--color-text-secondary)]"
+                >
+                  취소
+                </button>
+                <button
+                  onClick={() => {
+                    handleVote(pendingVote.type, 1);
+                    setPendingVote(null);
+                  }}
+                  className="flex-1 py-3 rounded-xl bg-[var(--color-primary)] text-white text-[14px] font-semibold"
+                >
+                  확인
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
 
       {/* 신고 모달 */}
       <ReportModal
