@@ -35,39 +35,44 @@ export default async function PostDetailPage({ params }: PostDetailPageProps) {
   const { id } = await params;
   const supabase = await createClient();
 
-  const { data: { user } } = await supabase.auth.getUser();
-
-  const { data: rawPostData } = await supabase
-    .from("posts")
-    .select(`
-      id, title, content, like_count, dislike_count, expires_at, created_at, author_id, is_dead, is_hidden,
-      profiles:author_id (nickname)
-    `)
-    .eq("id", id)
-    .single();
+  const [
+    { data: claimsData, error: claimsError },
+    { data: rawPostData },
+    { data: rawComments },
+  ] = await Promise.all([
+    supabase.auth.getClaims(),
+    supabase
+      .from("posts")
+      .select(`
+        id, title, content, like_count, dislike_count, expires_at, created_at, author_id, is_dead, is_hidden,
+        profiles:author_id (nickname)
+      `)
+      .eq("id", id)
+      .single(),
+    supabase
+      .from("comments")
+      .select(`
+        id, content, created_at, author_id,
+        profiles:author_id (nickname)
+      `)
+      .eq("post_id", id)
+      .is("parent_id", null)
+      .order("created_at", { ascending: true }),
+  ]);
 
   const postData = rawPostData as unknown as PostRow | null;
+  const userId = claimsError ? undefined : claimsData?.claims.sub ?? undefined;
 
   if (!postData || postData.is_hidden) {
     notFound();
   }
 
-  const { data: rawComments } = await supabase
-    .from("comments")
-    .select(`
-      id, content, created_at, author_id,
-      profiles:author_id (nickname)
-    `)
-    .eq("post_id", id)
-    .is("parent_id", null)
-    .order("created_at", { ascending: true });
-
   let balance = 0;
-  if (user) {
+  if (userId) {
     const { data: profileData } = await supabase
       .from("profiles")
       .select("free_votes, paid_votes")
-      .eq("id", user.id)
+      .eq("id", userId)
       .single();
     if (profileData) {
       const p = profileData as { free_votes: number; paid_votes: number };
@@ -102,7 +107,7 @@ export default async function PostDetailPage({ params }: PostDetailPageProps) {
       post={post}
       comments={comments}
       balance={balance}
-      userId={user?.id}
+      userId={userId}
     />
   );
 }

@@ -30,34 +30,38 @@ export default async function ProfilePage() {
     redirect("/login");
   }
 
-  const { data: rawProfile } = await supabase
-    .from("profiles")
-    .select("nickname, free_votes, paid_votes")
-    .eq("id", user.id)
-    .single();
+  const [
+    { data: rawProfile },
+    { data: rawAlivePosts },
+    { data: rawDeadPosts },
+  ] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select("nickname, free_votes, paid_votes")
+      .eq("id", user.id)
+      .single(),
+    supabase
+      .from("posts")
+      .select("id, title, like_count, dislike_count, expires_at, created_at, dead_at, is_dead")
+      .eq("author_id", user.id)
+      .eq("is_dead", false)
+      .eq("is_hidden", false)
+      .gt("expires_at", new Date().toISOString())
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("posts")
+      .select("id, title, like_count, dislike_count, expires_at, created_at, dead_at, is_dead")
+      .eq("author_id", user.id)
+      .eq("is_dead", true)
+      .order("dead_at", { ascending: false })
+      .limit(50),
+  ]);
 
   const profile = rawProfile as unknown as ProfileRow | null;
 
   if (!profile) {
     redirect("/login");
   }
-
-  const { data: rawAlivePosts } = await supabase
-    .from("posts")
-    .select("id, title, like_count, dislike_count, expires_at, created_at, dead_at, is_dead")
-    .eq("author_id", user.id)
-    .eq("is_dead", false)
-    .eq("is_hidden", false)
-    .gt("expires_at", new Date().toISOString())
-    .order("created_at", { ascending: false });
-
-  const { data: rawDeadPosts } = await supabase
-    .from("posts")
-    .select("id, title, like_count, dislike_count, expires_at, created_at, dead_at, is_dead")
-    .eq("author_id", user.id)
-    .eq("is_dead", true)
-    .order("dead_at", { ascending: false })
-    .limit(50);
 
   const balance = (profile.free_votes ?? 0) + (profile.paid_votes ?? 0);
 
