@@ -235,6 +235,18 @@ export function PostDetailClient({
           </div>
         )}
 
+        {/* 다시 작성하기 버튼 */}
+        {post.isDead && userId === post.authorId && (
+          <div className="mb-6">
+            <button
+              onClick={() => router.push(`/write?title=${encodeURIComponent(post.title)}&content=${encodeURIComponent(post.content)}`)}
+              className="w-full py-3 rounded-xl bg-[var(--color-primary)] text-white text-[14px] font-semibold hover:opacity-90 transition-opacity"
+            >
+              다시 작성하기
+            </button>
+          </div>
+        )}
+
         {/* 신고 버튼 */}
         <div className="mb-8 flex justify-end">
           <button

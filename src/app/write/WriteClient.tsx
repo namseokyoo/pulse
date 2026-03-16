@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { PostForm } from "@/components/pulse/PostForm";
 import type { PostFormValues } from "@/components/pulse/PostForm";
 import { BottomNav } from "@/components/layout/BottomNav";
@@ -14,6 +14,9 @@ interface WriteClientProps {
 
 export function WriteClient({ gameRules }: WriteClientProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const initialTitle = searchParams.get("title") ?? "";
+  const initialContent = searchParams.get("content") ?? "";
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const supabase = createClient() as any;
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -87,6 +90,8 @@ export function WriteClient({ gameRules }: WriteClientProps) {
           maxLength={500}
           isSubmitting={isSubmitting}
           gameRules={gameRules}
+          initialTitle={initialTitle}
+          initialContent={initialContent}
         />
       </main>
 

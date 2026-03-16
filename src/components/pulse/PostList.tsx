@@ -1,6 +1,7 @@
 "use client";
 
 import { ThumbsDown, ThumbsUp } from "lucide-react";
+import Link from "next/link";
 import { PostCard } from "./PostCard";
 import type { PostType } from "@/types";
 
@@ -28,45 +29,47 @@ function SkeletonCard() {
 
 function DeadPostItem({ post }: { post: PostType }) {
   return (
-    <div className="rounded-xl border border-white/5 bg-[var(--color-surface)] p-5 opacity-60">
-      <div className="flex items-start justify-between gap-3 mb-2">
-        <h3 className="text-[16px] font-semibold text-[var(--color-text-secondary)] flex-1 min-w-0">
-          {post.title}
-        </h3>
-        <div className="flex items-center gap-3 shrink-0 pt-0.5">
-          {post.likes > 0 && (
-            <span className="flex items-center gap-1 text-[var(--color-like)]">
-              <span aria-hidden="true">
-                <ThumbsUp size={14} />
+    <Link href={`/post/${post.id}`} className="block cursor-pointer hover:opacity-80 transition-opacity">
+      <div className="rounded-xl border border-white/5 bg-[var(--color-surface)] p-5 opacity-60">
+        <div className="flex items-start justify-between gap-3 mb-2">
+          <h3 className="text-[16px] font-semibold text-[var(--color-text-secondary)] flex-1 min-w-0">
+            {post.title}
+          </h3>
+          <div className="flex items-center gap-3 shrink-0 pt-0.5">
+            {post.likes > 0 && (
+              <span className="flex items-center gap-1 text-[var(--color-like)]">
+                <span aria-hidden="true">
+                  <ThumbsUp size={14} />
+                </span>
+                <span className="text-[13px] tabular-nums">{post.likes}</span>
               </span>
-              <span className="text-[13px] tabular-nums">{post.likes}</span>
-            </span>
-          )}
-          {post.dislikes > 0 && (
-            <span className="flex items-center gap-1 text-[var(--color-dislike)]">
-              <span aria-hidden="true">
-                <ThumbsDown size={14} />
+            )}
+            {post.dislikes > 0 && (
+              <span className="flex items-center gap-1 text-[var(--color-dislike)]">
+                <span aria-hidden="true">
+                  <ThumbsDown size={14} />
+                </span>
+                <span className="text-[13px] tabular-nums">{post.dislikes}</span>
               </span>
-              <span className="text-[13px] tabular-nums">{post.dislikes}</span>
+            )}
+          </div>
+        </div>
+        <div className="mb-2">
+          <div className="w-full h-2 rounded-full bg-white/5">
+            <div className="h-full w-0 rounded-full bg-[var(--color-vitality-critical)]" />
+          </div>
+        </div>
+        {post.survivedMinutes !== undefined && (
+          <div className="text-[13px] text-[var(--color-text-muted)]">
+            <span>
+              {Math.floor(post.survivedMinutes / 60) > 0
+                ? `${Math.floor(post.survivedMinutes / 60)}h ${post.survivedMinutes % 60}m 생존`
+                : `${post.survivedMinutes}m 생존`}
             </span>
-          )}
-        </div>
+          </div>
+        )}
       </div>
-      <div className="mb-2">
-        <div className="w-full h-2 rounded-full bg-white/5">
-          <div className="h-full w-0 rounded-full bg-[var(--color-vitality-critical)]" />
-        </div>
-      </div>
-      {post.survivedMinutes !== undefined && (
-        <div className="text-[13px] text-[var(--color-text-muted)]">
-          <span>
-            {Math.floor(post.survivedMinutes / 60) > 0
-              ? `${Math.floor(post.survivedMinutes / 60)}h ${post.survivedMinutes % 60}m 생존`
-              : `${post.survivedMinutes}m 생존`}
-          </span>
-        </div>
-      )}
-    </div>
+    </Link>
   );
 }
 

@@ -14,6 +14,8 @@ export interface PostFormProps {
   maxLength?: number;
   isSubmitting?: boolean;
   gameRules?: GameRules;
+  initialTitle?: string;
+  initialContent?: string;
 }
 
 function formatMinutes(minutes: number): string {
@@ -27,9 +29,11 @@ export function PostForm({
   maxLength = 500,
   isSubmitting = false,
   gameRules,
+  initialTitle = "",
+  initialContent = "",
 }: PostFormProps) {
-  const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
+  const [title, setTitle] = useState(initialTitle);
+  const [content, setContent] = useState(initialContent);
 
   const canSubmit = title.trim().length > 0 && content.trim().length > 0 && !isSubmitting;
 
