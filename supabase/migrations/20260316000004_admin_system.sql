@@ -12,8 +12,8 @@ CREATE TABLE IF NOT EXISTS admin_users (
 ALTER TABLE admin_users ENABLE ROW LEVEL SECURITY;
 
 -- SELECT: authenticated만 허용 (admin 여부 확인용)
-CREATE POLICY "admin_users_select_authenticated" ON admin_users
-  FOR SELECT TO authenticated USING (true);
+CREATE POLICY "admin_users_select_own" ON admin_users
+  FOR SELECT TO authenticated USING (uid = auth.uid());
 
 -- comments.is_hidden 컬럼 추가
 ALTER TABLE comments ADD COLUMN IF NOT EXISTS is_hidden BOOLEAN NOT NULL DEFAULT FALSE;

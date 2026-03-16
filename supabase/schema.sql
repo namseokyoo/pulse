@@ -527,8 +527,8 @@ CREATE TABLE IF NOT EXISTS admin_users (
 
 ALTER TABLE admin_users ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "admin_users_select_authenticated" ON admin_users
-  FOR SELECT TO authenticated USING (true);
+CREATE POLICY "admin_users_select_own" ON admin_users
+  FOR SELECT TO authenticated USING (uid = auth.uid());
 
 -- comments.is_hidden 컬럼
 ALTER TABLE comments ADD COLUMN IF NOT EXISTS is_hidden BOOLEAN NOT NULL DEFAULT FALSE;
