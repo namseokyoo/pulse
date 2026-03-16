@@ -21,6 +21,7 @@ type PostRow = {
   created_at: string;
   dead_at: string | null;
   is_dead: boolean;
+  author_nickname: string;
 };
 
 export default async function ProfilePage() {
@@ -43,7 +44,7 @@ export default async function ProfilePage() {
       .single(),
     supabase
       .from("posts")
-      .select("id, title, like_count, dislike_count, initial_ttl_minutes, expires_at, created_at, dead_at, is_dead")
+      .select("id, title, like_count, dislike_count, initial_ttl_minutes, expires_at, created_at, dead_at, is_dead, author_nickname")
       .eq("author_id", user.id)
       .eq("is_dead", false)
       .eq("is_hidden", false)
@@ -51,7 +52,7 @@ export default async function ProfilePage() {
       .order("created_at", { ascending: false }),
     supabase
       .from("posts")
-      .select("id, title, like_count, dislike_count, initial_ttl_minutes, expires_at, created_at, dead_at, is_dead")
+      .select("id, title, like_count, dislike_count, initial_ttl_minutes, expires_at, created_at, dead_at, is_dead, author_nickname")
       .eq("author_id", user.id)
       .eq("is_dead", true)
       .order("dead_at", { ascending: false })
@@ -70,7 +71,7 @@ export default async function ProfilePage() {
     id: p.id,
     title: p.title,
     content: "",
-    nickname: profile.nickname,
+    nickname: p.author_nickname,
     vitality: 0,
     likes: p.like_count,
     dislikes: p.dislike_count,
