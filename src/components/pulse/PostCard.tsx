@@ -43,11 +43,6 @@ export function PostCard({ post }: PostCardProps) {
           </div>
         </div>
 
-        {/* 본문 미리보기 */}
-        <p className="text-[14px] leading-[1.55] text-[var(--color-text-secondary)] line-clamp-2 mb-4">
-          {post.content}
-        </p>
-
         {/* 닉네임 + 남은 시간 */}
         <div className="flex items-center justify-between text-[13px] text-[var(--color-text-muted)] mb-3">
           <span>{post.nickname}</span>
