@@ -31,6 +31,7 @@ CREATE TABLE IF NOT EXISTS posts (
   author_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
   title TEXT NOT NULL CHECK (char_length(title) <= 100),
   content TEXT NOT NULL CHECK (char_length(content) <= 500),
+  author_nickname TEXT NOT NULL,
   like_count INTEGER NOT NULL DEFAULT 0,
   dislike_count INTEGER NOT NULL DEFAULT 0,
   initial_ttl_minutes INTEGER NOT NULL DEFAULT 360 CHECK (initial_ttl_minutes > 0),
@@ -49,6 +50,7 @@ CREATE TABLE IF NOT EXISTS comments (
   parent_id UUID REFERENCES comments(id) ON DELETE CASCADE,
   author_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
   content TEXT NOT NULL CHECK (char_length(content) <= 300),
+  author_nickname TEXT NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -911,3 +913,46 @@ $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 INSERT INTO admin_users (uid, granted_by)
 VALUES ('84f57fbb-ef83-41ff-be1a-02745a0ca6e3', 'founder')
 ON CONFLICT (uid) DO NOTHING;
+
+-- ============================================================
+-- Nickname Snapshot (Migration: 20260316000006)
+-- 작성 시점 닉네임 고정 — DB 트리거 자동 채움
+-- ============================================================
+
+-- BEFORE INSERT 트리거 함수 (자동 채움)
+CREATE OR REPLACE FUNCTION set_author_nickname()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.author_nickname := (SELECT nickname FROM profiles WHERE id = NEW.author_id);
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_posts_set_nickname ON posts;
+CREATE TRIGGER trg_posts_set_nickname
+  BEFORE INSERT ON posts
+  FOR EACH ROW EXECUTE FUNCTION set_author_nickname();
+
+DROP TRIGGER IF EXISTS trg_comments_set_nickname ON comments;
+CREATE TRIGGER trg_comments_set_nickname
+  BEFORE INSERT ON comments
+  FOR EACH ROW EXECUTE FUNCTION set_author_nickname();
+
+-- BEFORE UPDATE 트리거 함수 (스냅샷 변경 차단)
+CREATE OR REPLACE FUNCTION protect_author_nickname()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.author_nickname := OLD.author_nickname;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_posts_protect_nickname ON posts;
+CREATE TRIGGER trg_posts_protect_nickname
+  BEFORE UPDATE ON posts
+  FOR EACH ROW EXECUTE FUNCTION protect_author_nickname();
+
+DROP TRIGGER IF EXISTS trg_comments_protect_nickname ON comments;
+CREATE TRIGGER trg_comments_protect_nickname
+  BEFORE UPDATE ON comments
+  FOR EACH ROW EXECUTE FUNCTION protect_author_nickname();

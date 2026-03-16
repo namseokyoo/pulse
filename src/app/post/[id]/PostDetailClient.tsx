@@ -116,8 +116,8 @@ export function PostDetailClient({
         author_id: userId,
         content: commentText.trim(),
       })
-      .select(`id, content, created_at, author_id, profiles:author_id (nickname)`)
-      .single() as { data: { id: string; content: string; created_at: string; author_id: string; profiles: { nickname: string } | null } | null; error: unknown };
+      .select(`id, content, created_at, author_id, author_nickname`)
+      .single() as { data: { id: string; content: string; created_at: string; author_id: string; author_nickname: string } | null; error: unknown };
 
     setIsSubmittingComment(false);
 
@@ -126,7 +126,7 @@ export function PostDetailClient({
         ...prev,
         {
           id: data.id,
-          nickname: data.profiles?.nickname ?? "익명",
+          nickname: data.author_nickname,
           content: data.content,
           createdAt: new Date(data.created_at),
           authorId: data.author_id,

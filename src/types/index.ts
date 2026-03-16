@@ -84,6 +84,7 @@ export interface Database {
         Row: {
           id: string;
           author_id: string;
+          author_nickname: string;
           title: string;
           content: string;
           like_count: number;
@@ -99,6 +100,7 @@ export interface Database {
         Insert: {
           id?: string;
           author_id: string;
+          author_nickname?: string;
           title: string;
           content: string;
           like_count?: number;
@@ -114,6 +116,7 @@ export interface Database {
         Update: {
           id?: string;
           author_id?: string;
+          author_nickname?: string;
           title?: string;
           content?: string;
           like_count?: number;
@@ -154,6 +157,7 @@ export interface Database {
           post_id: string;
           parent_id: string | null;
           author_id: string;
+          author_nickname: string;
           content: string;
           is_hidden: boolean;
           created_at: string;
@@ -163,6 +167,7 @@ export interface Database {
           post_id: string;
           parent_id?: string | null;
           author_id: string;
+          author_nickname?: string;
           content: string;
           is_hidden?: boolean;
           created_at?: string;
@@ -172,6 +177,7 @@ export interface Database {
           post_id?: string;
           parent_id?: string | null;
           author_id?: string;
+          author_nickname?: string;
           content?: string;
           is_hidden?: boolean;
           created_at?: string;

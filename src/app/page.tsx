@@ -14,7 +14,7 @@ type PostWithProfile = {
   expires_at: string;
   created_at: string;
   author_id: string;
-  profiles: { nickname: string } | null;
+  author_nickname: string;
 };
 
 type GameRulesRow = Database["public"]["Tables"]["game_rules"]["Row"];
@@ -40,7 +40,7 @@ export default async function FeedPage() {
         expires_at,
         created_at,
         author_id,
-        profiles:author_id (nickname)
+        author_nickname
       `)
       .eq("is_dead", false)
       .eq("is_hidden", false)
@@ -73,7 +73,7 @@ export default async function FeedPage() {
     id: p.id,
     title: p.title,
     content: p.content,
-    nickname: p.profiles?.nickname ?? "익명",
+    nickname: p.author_nickname,
     vitality: 0,
     likes: p.like_count,
     dislikes: p.dislike_count,

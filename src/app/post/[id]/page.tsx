@@ -17,7 +17,7 @@ type PostRow = {
   author_id: string;
   is_dead: boolean;
   is_hidden: boolean;
-  profiles: { nickname: string } | null;
+  author_nickname: string;
 };
 
 type CommentRow = {
@@ -25,7 +25,7 @@ type CommentRow = {
   content: string;
   created_at: string;
   author_id: string;
-  profiles: { nickname: string } | null;
+  author_nickname: string;
 };
 
 type GameRulesRow = Database["public"]["Tables"]["game_rules"]["Row"];
@@ -49,7 +49,7 @@ export default async function PostDetailPage({ params }: PostDetailPageProps) {
       .from("posts")
       .select(`
         id, title, content, like_count, dislike_count, initial_ttl_minutes, expires_at, created_at, author_id, is_dead, is_hidden,
-        profiles:author_id (nickname)
+        author_nickname
       `)
       .eq("id", id)
       .single(),
@@ -57,7 +57,7 @@ export default async function PostDetailPage({ params }: PostDetailPageProps) {
       .from("comments")
       .select(`
         id, content, created_at, author_id,
-        profiles:author_id (nickname)
+        author_nickname
       `)
       .eq("post_id", id)
       .is("parent_id", null)
@@ -93,7 +93,7 @@ export default async function PostDetailPage({ params }: PostDetailPageProps) {
     id: postData.id,
     title: postData.title,
     content: postData.content,
-    nickname: postData.profiles?.nickname ?? "익명",
+    nickname: postData.author_nickname,
     vitality: 0,
     likes: postData.like_count,
     dislikes: postData.dislike_count,
@@ -106,7 +106,7 @@ export default async function PostDetailPage({ params }: PostDetailPageProps) {
 
   const comments: CommentType[] = ((rawComments ?? []) as unknown as CommentRow[]).map((c) => ({
     id: c.id,
-    nickname: c.profiles?.nickname ?? "익명",
+    nickname: c.author_nickname,
     content: c.content,
     createdAt: new Date(c.created_at),
     authorId: c.author_id,

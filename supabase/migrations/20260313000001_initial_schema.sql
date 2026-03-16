@@ -30,6 +30,7 @@ CREATE TABLE IF NOT EXISTS profiles (
 CREATE TABLE IF NOT EXISTS posts (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   author_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  author_nickname TEXT NOT NULL,
   title TEXT NOT NULL CHECK (char_length(title) <= 100),
   content TEXT NOT NULL CHECK (char_length(content) <= 500),
   like_count INTEGER NOT NULL DEFAULT 0,
@@ -48,6 +49,7 @@ CREATE TABLE IF NOT EXISTS comments (
   post_id UUID NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
   parent_id UUID REFERENCES comments(id) ON DELETE CASCADE,
   author_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  author_nickname TEXT NOT NULL,
   content TEXT NOT NULL CHECK (char_length(content) <= 300),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -99,6 +101,42 @@ CREATE INDEX IF NOT EXISTS idx_comments_post_id ON comments(post_id, created_at 
 CREATE INDEX IF NOT EXISTS idx_vote_logs_user_post ON vote_logs(user_id, post_id);
 CREATE INDEX IF NOT EXISTS idx_vote_balance_logs_user ON vote_balance_logs(user_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_reports_target ON reports(target_type, target_id);
+
+-- ============================================================
+-- Nickname Snapshot Triggers
+-- ============================================================
+
+CREATE OR REPLACE FUNCTION set_author_nickname()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.author_nickname := (SELECT nickname FROM profiles WHERE id = NEW.author_id);
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_posts_set_nickname
+  BEFORE INSERT ON posts
+  FOR EACH ROW EXECUTE FUNCTION set_author_nickname();
+
+CREATE TRIGGER trg_comments_set_nickname
+  BEFORE INSERT ON comments
+  FOR EACH ROW EXECUTE FUNCTION set_author_nickname();
+
+CREATE OR REPLACE FUNCTION protect_author_nickname()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.author_nickname := OLD.author_nickname;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_posts_protect_nickname
+  BEFORE UPDATE ON posts
+  FOR EACH ROW EXECUTE FUNCTION protect_author_nickname();
+
+CREATE TRIGGER trg_comments_protect_nickname
+  BEFORE UPDATE ON comments
+  FOR EACH ROW EXECUTE FUNCTION protect_author_nickname();
 
 -- ============================================================
 -- State Transition Function (alive → dead)
