@@ -1,5 +1,6 @@
 "use client";
 
+import { ThumbsDown, ThumbsUp } from "lucide-react";
 import { cn } from "@/lib/utils/format";
 
 export interface VoteButtonProps {
@@ -40,7 +41,7 @@ export function VoteButton({ type, count, selected = false, disabled = false, on
       aria-label={`${isLike ? "좋아요" : "싫어요"} 투표`}
       aria-pressed={selected}
     >
-      <span aria-hidden="true">{isLike ? "♥" : "💔"}</span>
+      <span aria-hidden="true">{isLike ? <ThumbsUp size={18} /> : <ThumbsDown size={18} />}</span>
       <span>{isLike ? "좋아요" : "싫어요"}</span>
       <span className="tabular-nums opacity-70">({count})</span>
     </button>

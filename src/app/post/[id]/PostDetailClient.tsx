@@ -1,5 +1,6 @@
 "use client";
 
+import { ThumbsDown, ThumbsUp } from "lucide-react";
 import { useState, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -323,7 +324,16 @@ export function PostDetailClient({
           >
             <div className="w-full max-w-[320px] rounded-2xl bg-[var(--color-surface)] border border-[var(--color-border)] p-6 shadow-[var(--shadow-modal)]">
               <h2 id="vote-confirm-title" className="text-[18px] font-semibold text-[var(--color-text-primary)] mb-3">
-                {pendingVote.type === "like" ? "♥ 좋아요" : "💔 싫어요"} 투표
+                {pendingVote.type === "like" ? (
+                  <>
+                    <ThumbsUp size={18} className="inline-block mr-1" /> 좋아요
+                  </>
+                ) : (
+                  <>
+                    <ThumbsDown size={18} className="inline-block mr-1" /> 싫어요
+                  </>
+                )}{" "}
+                투표
               </h2>
               <p className="text-[14px] text-[var(--color-text-secondary)] mb-6">
                 투표권이 1장 소모됩니다.

@@ -1,5 +1,6 @@
 "use client";
 
+import { ThumbsDown, ThumbsUp } from "lucide-react";
 import { PostCard } from "./PostCard";
 import type { PostType } from "@/types";
 
@@ -35,13 +36,17 @@ function DeadPostItem({ post }: { post: PostType }) {
         <div className="flex items-center gap-3 shrink-0 pt-0.5">
           {post.likes > 0 && (
             <span className="flex items-center gap-1 text-[var(--color-like)]">
-              <span aria-hidden="true">♥</span>
+              <span aria-hidden="true">
+                <ThumbsUp size={14} />
+              </span>
               <span className="text-[13px] tabular-nums">{post.likes}</span>
             </span>
           )}
           {post.dislikes > 0 && (
             <span className="flex items-center gap-1 text-[var(--color-dislike)]">
-              <span aria-hidden="true">💔</span>
+              <span aria-hidden="true">
+                <ThumbsDown size={14} />
+              </span>
               <span className="text-[13px] tabular-nums">{post.dislikes}</span>
             </span>
           )}
