@@ -87,7 +87,8 @@ CREATE TABLE IF NOT EXISTS reports (
   reason TEXT NOT NULL CHECK (reason IN ('abuse', 'adult', 'spam', 'other')),
   detail TEXT,
   status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'reviewed', 'dismissed')),
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  CONSTRAINT uq_reporter_target UNIQUE (reporter_id, target_type, target_id)
 );
 
 -- 게임 규칙 (singleton)
@@ -348,7 +349,8 @@ BEGIN
   SELECT * INTO v_rules FROM public.get_game_rules();
 
   -- 게시글 확인
-  SELECT * INTO v_post FROM posts WHERE id = p_post_id AND is_dead = FALSE AND is_hidden = FALSE;
+  -- C-3: FOR UPDATE로 행 잠금 — 만료 경계 레이스 방지
+  SELECT * INTO v_post FROM posts WHERE id = p_post_id AND is_dead = FALSE AND is_hidden = FALSE FOR UPDATE;
   IF NOT FOUND THEN
     RETURN jsonb_build_object('success', FALSE, 'error', 'post_not_found');
   END IF;
@@ -446,20 +448,19 @@ CREATE OR REPLACE FUNCTION submit_report(
 RETURNS JSONB AS $$
 DECLARE
   v_report_count INTEGER;
+  v_inserted INTEGER := 0;
 BEGIN
-  -- 중복 신고 방지
-  IF EXISTS (
-    SELECT 1 FROM reports
-    WHERE reporter_id = p_reporter_id
-      AND target_type = p_target_type
-      AND target_id = p_target_id
-  ) THEN
+  -- C-2: 원자적 INSERT (TOCTOU 레이스 방지) — 중복이면 아무것도 하지 않음
+  INSERT INTO reports (reporter_id, target_type, target_id, reason, detail)
+  VALUES (p_reporter_id, p_target_type, p_target_id, p_reason, p_detail)
+  ON CONFLICT (reporter_id, target_type, target_id) DO NOTHING;
+
+  -- 실제 삽입 여부 확인 (중복이면 0)
+  GET DIAGNOSTICS v_inserted = ROW_COUNT;
+
+  IF v_inserted = 0 THEN
     RETURN jsonb_build_object('success', FALSE, 'error', 'already_reported');
   END IF;
-
-  -- 신고 삽입
-  INSERT INTO reports (reporter_id, target_type, target_id, reason, detail)
-  VALUES (p_reporter_id, p_target_type, p_target_id, p_reason, p_detail);
 
   -- 신고 건수 증가
   IF p_target_type = 'post' THEN
@@ -956,3 +957,31 @@ DROP TRIGGER IF EXISTS trg_comments_protect_nickname ON comments;
 CREATE TRIGGER trg_comments_protect_nickname
   BEFORE UPDATE ON comments
   FOR EACH ROW EXECUTE FUNCTION protect_author_nickname();
+-- ============================================================
+-- C-1: 닉네임 변경 제한 우회 방지
+-- 클라이언트가 nickname_changed_at을 직접 조작하는 것을 방지
+-- 7일 미경과 시 차단, 서버 시각 강제
+-- ============================================================
+
+CREATE OR REPLACE FUNCTION enforce_nickname_change_limit()
+RETURNS TRIGGER AS $$
+BEGIN
+  -- nickname이 실제로 변경된 경우에만 제한 적용
+  IF NEW.nickname IS DISTINCT FROM OLD.nickname THEN
+    -- 7일 미경과 시 차단
+    IF OLD.nickname_changed_at IS NOT NULL
+       AND OLD.nickname_changed_at > NOW() - INTERVAL '7 days' THEN
+      RAISE EXCEPTION 'nickname_change_too_soon';
+    END IF;
+    -- 클라이언트가 보낸 nickname_changed_at 무시, 서버 시각 강제
+    NEW.nickname_changed_at := NOW();
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_enforce_nickname_limit ON profiles;
+CREATE TRIGGER trg_enforce_nickname_limit
+  BEFORE UPDATE ON profiles
+  FOR EACH ROW EXECUTE FUNCTION enforce_nickname_change_limit();
+
