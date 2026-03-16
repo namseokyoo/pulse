@@ -33,6 +33,9 @@ export function ProfileClient({ nickname, balance, alivePosts, deadPosts, userId
   const [newNickname, setNewNickname] = useState(nickname);
   const [currentNickname, setCurrentNickname] = useState(nickname);
   const [nicknameError, setNicknameError] = useState<string | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const handleSaveNickname = async () => {
     if (!newNickname.trim() || newNickname.trim() === currentNickname) {
@@ -63,6 +66,24 @@ export function ProfileClient({ nickname, balance, alivePosts, deadPosts, userId
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     router.push("/login");
+  };
+
+  const handleDeleteAccount = async () => {
+    setIsDeleting(true);
+    setDeleteError(null);
+    try {
+      const { error } = await supabase.rpc("delete_account");
+      if (error) {
+        setDeleteError("계정 삭제에 실패했습니다. 잠시 후 다시 시도해주세요.");
+        setIsDeleting(false);
+        return;
+      }
+      await supabase.auth.signOut();
+      router.push("/login");
+    } catch {
+      setDeleteError("오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+      setIsDeleting(false);
+    }
   };
 
   return (
@@ -118,6 +139,38 @@ export function ProfileClient({ nickname, balance, alivePosts, deadPosts, userId
           </div>
         )}
 
+        {showDeleteModal && (
+          <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
+            <div className="w-full max-w-sm bg-[var(--color-surface)] rounded-xl p-6 border border-[var(--color-border)]">
+              <h2 className="text-[18px] font-semibold text-[var(--color-text-primary)] mb-3">
+                계정 삭제
+              </h2>
+              <p className="text-[14px] text-[var(--color-text-secondary)] leading-6 mb-4">
+                정말로 탈퇴하시겠습니까? 모든 데이터가 삭제되며 복구할 수 없습니다.
+              </p>
+              {deleteError && (
+                <p className="text-[13px] text-[var(--color-danger)] mb-3">{deleteError}</p>
+              )}
+              <div className="flex gap-2">
+                <button
+                  onClick={() => { setShowDeleteModal(false); setDeleteError(null); }}
+                  disabled={isDeleting}
+                  className="flex-1 py-3 rounded-xl bg-[var(--color-surface-elevated)] text-[var(--color-text-secondary)] text-[14px] font-semibold disabled:opacity-50"
+                >
+                  취소
+                </button>
+                <button
+                  onClick={handleDeleteAccount}
+                  disabled={isDeleting}
+                  className="flex-1 py-3 rounded-xl bg-[var(--color-danger)] text-white text-[14px] font-semibold disabled:opacity-50"
+                >
+                  {isDeleting ? "삭제 중..." : "탈퇴하기"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* 프로필 헤더 */}
         <ProfileHeader
           nickname={currentNickname}
@@ -146,13 +199,21 @@ export function ProfileClient({ nickname, balance, alivePosts, deadPosts, userId
         </div>
 
         {/* 로그아웃 */}
-        <div className="mt-8 text-center">
+        <div className="mt-8 text-center space-y-3">
           <button
             onClick={handleSignOut}
             className="text-[14px] text-[var(--color-text-muted)] hover:text-[var(--color-danger)] transition-colors"
           >
             로그아웃
           </button>
+          <div>
+            <button
+              onClick={() => setShowDeleteModal(true)}
+              className="text-[13px] text-[var(--color-text-muted)] hover:text-[var(--color-danger)] transition-colors underline"
+            >
+              계정 삭제
+            </button>
+          </div>
         </div>
       </main>
 
