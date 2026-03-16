@@ -35,7 +35,7 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   // 보호된 라우트: 로그인 안 된 사용자 → /login
-  const protectedPaths = ["/write", "/profile", "/admin"];
+  const protectedPaths = ["/write", "/profile", "/admin", "/onboarding"];
   const isProtected = protectedPaths.some((path) =>
     request.nextUrl.pathname === path ||
     request.nextUrl.pathname.startsWith(path + "/")
@@ -52,6 +52,29 @@ export async function updateSession(request: NextRequest) {
     const url = request.nextUrl.clone();
     url.pathname = "/";
     return NextResponse.redirect(url);
+  }
+
+  const isOnboardingExcluded =
+    request.nextUrl.pathname.startsWith("/onboarding") ||
+    request.nextUrl.pathname.startsWith("/admin") ||
+    request.nextUrl.pathname.startsWith("/auth/callback");
+
+  if (user && isProtected && !isOnboardingExcluded) {
+    const profilesTable = supabase.from("profiles") as any;
+    const { data: profileData } = await profilesTable
+      .select("consented_at")
+      .eq("id", user.id)
+      .single();
+    const profile = profileData as Pick<
+      Database["public"]["Tables"]["profiles"]["Row"],
+      "consented_at"
+    > | null;
+
+    if (!profile?.consented_at) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/onboarding";
+      return NextResponse.redirect(url);
+    }
   }
 
   return supabaseResponse;

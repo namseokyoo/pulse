@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
+import type { Database } from "@/types";
 
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
@@ -43,6 +44,40 @@ export async function GET(request: NextRequest) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (!error) {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (user) {
+        const profilesTable = supabase.from("profiles") as any;
+        const { data: profileData } = await profilesTable
+          .select("consented_at")
+          .eq("id", user.id)
+          .single();
+        const profile = profileData as Pick<
+          Database["public"]["Tables"]["profiles"]["Row"],
+          "consented_at"
+        > | null;
+
+        if (!profile?.consented_at) {
+          let onboardingUrl: string;
+          if (isLocalEnv) {
+            onboardingUrl = `${origin}/onboarding`;
+          } else if (siteUrl) {
+            onboardingUrl = `${siteUrl}/onboarding`;
+          } else {
+            onboardingUrl = `${origin}/onboarding`;
+          }
+
+          const onboardingResponse = NextResponse.redirect(onboardingUrl);
+          response.cookies.getAll().forEach(({ name, value, ...options }) => {
+            onboardingResponse.cookies.set(name, value, options);
+          });
+
+          return onboardingResponse;
+        }
+      }
+
       return response;
     }
   }

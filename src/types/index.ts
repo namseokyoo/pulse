@@ -56,6 +56,7 @@ export interface Database {
           free_votes: number;
           free_votes_reset_at: string | null;
           paid_votes: number;
+          consented_at: string | null;
           created_at: string;
         };
         Insert: {
@@ -65,6 +66,7 @@ export interface Database {
           free_votes?: number;
           free_votes_reset_at?: string | null;
           paid_votes?: number;
+          consented_at?: string | null;
           created_at?: string;
         };
         Update: {
@@ -74,6 +76,7 @@ export interface Database {
           free_votes?: number;
           free_votes_reset_at?: string | null;
           paid_votes?: number;
+          consented_at?: string | null;
           created_at?: string;
         };
       };

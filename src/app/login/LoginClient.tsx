@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import type { GameRules } from "@/types";
@@ -17,40 +17,10 @@ function formatMinutes(minutes: number): string {
 
 export function LoginClient({ gameRules }: LoginClientProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const [hasConsented, setHasConsented] = useState(false);
-  const [agreements, setAgreements] = useState({
-    terms: false,
-    privacy: false,
-    age: false,
-  });
   const supabase = createClient();
 
-  const allAgreed = agreements.terms && agreements.privacy && agreements.age;
-
-  useEffect(() => {
-    const consented = localStorage.getItem("pulse_consented");
-    if (consented === "true") {
-      setHasConsented(true);
-    }
-  }, []);
-
-  const handleAllAgree = (checked: boolean) => {
-    setAgreements({ terms: checked, privacy: checked, age: checked });
-  };
-
-  const handleSingleAgree = (
-    key: keyof typeof agreements,
-    checked: boolean,
-  ) => {
-    setAgreements((prev) => ({ ...prev, [key]: checked }));
-  };
-
   const handleGoogleLogin = async () => {
-    if (!hasConsented && !allAgreed) return;
     setIsLoading(true);
-    if (!hasConsented) {
-      localStorage.setItem("pulse_consented", "true");
-    }
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
@@ -100,171 +70,12 @@ export function LoginClient({ gameRules }: LoginClientProps) {
 
       {/* 하단: 로그인 영역 */}
       <div className="w-full max-w-sm space-y-4">
-        {/* 동의 체크박스 영역 - 이전에 동의한 경우 숨김 */}
-        {!hasConsented && (
-          <div className="bg-[var(--color-surface)] rounded-xl p-4 border border-[var(--color-border)] space-y-3">
-            {/* 전체 동의 */}
-            <label className="flex items-center gap-3 cursor-pointer">
-              <div
-                onClick={() => handleAllAgree(!allAgreed)}
-                className={`w-5 h-5 rounded flex items-center justify-center flex-shrink-0 border transition-colors cursor-pointer ${
-                  allAgreed
-                    ? "bg-[var(--color-primary)] border-[var(--color-primary)]"
-                    : "border-[var(--color-border)] bg-transparent"
-                }`}
-                role="checkbox"
-                aria-checked={allAgreed}
-                tabIndex={0}
-                onKeyDown={(e) => e.key === " " && handleAllAgree(!allAgreed)}
-              >
-                {allAgreed && (
-                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                    <path
-                      d="M2 6l3 3 5-5"
-                      stroke="white"
-                      strokeWidth="1.8"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                )}
-              </div>
-              <span className="text-[14px] font-semibold text-[var(--color-text-primary)]">
-                전체 동의
-              </span>
-            </label>
-
-            <div className="border-t border-[var(--color-border)]" />
-
-            {/* 이용약관 */}
-            <label className="flex items-center gap-3 cursor-pointer">
-              <div
-                onClick={() => handleSingleAgree("terms", !agreements.terms)}
-                className={`w-5 h-5 rounded flex items-center justify-center flex-shrink-0 border transition-colors cursor-pointer ${
-                  agreements.terms
-                    ? "bg-[var(--color-primary)] border-[var(--color-primary)]"
-                    : "border-[var(--color-border)] bg-transparent"
-                }`}
-                role="checkbox"
-                aria-checked={agreements.terms}
-                tabIndex={0}
-                onKeyDown={(e) =>
-                  e.key === " " && handleSingleAgree("terms", !agreements.terms)
-                }
-              >
-                {agreements.terms && (
-                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                    <path
-                      d="M2 6l3 3 5-5"
-                      stroke="white"
-                      strokeWidth="1.8"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                )}
-              </div>
-              <span className="text-[13px] text-[var(--color-text-secondary)]">
-                <span className="text-[var(--color-primary)] font-medium">
-                  [필수]
-                </span>{" "}
-                <Link
-                  href="/terms"
-                  className="underline hover:text-[var(--color-text-primary)] transition-colors"
-                >
-                  이용약관
-                </Link>
-                에 동의합니다
-              </span>
-            </label>
-
-            {/* 개인정보처리방침 */}
-            <label className="flex items-center gap-3 cursor-pointer">
-              <div
-                onClick={() => handleSingleAgree("privacy", !agreements.privacy)}
-                className={`w-5 h-5 rounded flex items-center justify-center flex-shrink-0 border transition-colors cursor-pointer ${
-                  agreements.privacy
-                    ? "bg-[var(--color-primary)] border-[var(--color-primary)]"
-                    : "border-[var(--color-border)] bg-transparent"
-                }`}
-                role="checkbox"
-                aria-checked={agreements.privacy}
-                tabIndex={0}
-                onKeyDown={(e) =>
-                  e.key === " " &&
-                  handleSingleAgree("privacy", !agreements.privacy)
-                }
-              >
-                {agreements.privacy && (
-                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                    <path
-                      d="M2 6l3 3 5-5"
-                      stroke="white"
-                      strokeWidth="1.8"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                )}
-              </div>
-              <span className="text-[13px] text-[var(--color-text-secondary)]">
-                <span className="text-[var(--color-primary)] font-medium">
-                  [필수]
-                </span>{" "}
-                <Link
-                  href="/privacy"
-                  className="underline hover:text-[var(--color-text-primary)] transition-colors"
-                >
-                  개인정보처리방침
-                </Link>
-                에 동의합니다
-              </span>
-            </label>
-
-            {/* 나이 확인 */}
-            <label className="flex items-center gap-3 cursor-pointer">
-              <div
-                onClick={() => handleSingleAgree("age", !agreements.age)}
-                className={`w-5 h-5 rounded flex items-center justify-center flex-shrink-0 border transition-colors cursor-pointer ${
-                  agreements.age
-                    ? "bg-[var(--color-primary)] border-[var(--color-primary)]"
-                    : "border-[var(--color-border)] bg-transparent"
-                }`}
-                role="checkbox"
-                aria-checked={agreements.age}
-                tabIndex={0}
-                onKeyDown={(e) =>
-                  e.key === " " && handleSingleAgree("age", !agreements.age)
-                }
-              >
-                {agreements.age && (
-                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                    <path
-                      d="M2 6l3 3 5-5"
-                      stroke="white"
-                      strokeWidth="1.8"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                )}
-              </div>
-              <span className="text-[13px] text-[var(--color-text-secondary)]">
-                <span className="text-[var(--color-primary)] font-medium">
-                  [필수]
-                </span>{" "}
-                만 14세 이상입니다
-              </span>
-            </label>
-          </div>
-        )}
-
         {/* Google 로그인 버튼 */}
         <button
           onClick={handleGoogleLogin}
-          disabled={isLoading || (!hasConsented && !allAgreed)}
+          disabled={isLoading}
           className="w-full flex items-center justify-center gap-3 py-4 px-6 rounded-2xl bg-white text-[#1f1f1f] text-[16px] font-semibold transition-opacity active:scale-95 disabled:opacity-40"
-          aria-label="Google로 시작하기"
+          aria-label="Google로 계속하기"
         >
           {/* Google G 로고 */}
           <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
@@ -285,12 +96,26 @@ export function LoginClient({ gameRules }: LoginClientProps) {
               fill="#EA4335"
             />
           </svg>
-          {isLoading ? "연결 중..." : "Google로 시작하기"}
+          {isLoading ? "연결 중..." : "Google로 계속하기"}
         </button>
 
-        {/* 안내 문구 */}
-        <p className="text-[13px] text-[var(--color-text-muted)] text-center leading-6 border border-[var(--color-border)] rounded-xl p-3">
-          익명으로 사라지는 글들이 아니라, 커뮤니티의 반응으로 맥박이 이어지는 게시판입니다.
+        {/* 약관 동의 안내 */}
+        <p className="text-[12px] text-[var(--color-text-muted)] text-center">
+          계속하면{" "}
+          <Link
+            href="/terms"
+            className="underline hover:text-[var(--color-text-primary)] transition-colors"
+          >
+            이용약관
+          </Link>
+          {" "}및{" "}
+          <Link
+            href="/privacy"
+            className="underline hover:text-[var(--color-text-primary)] transition-colors"
+          >
+            개인정보처리방침
+          </Link>
+          에 동의하게 됩니다.
         </p>
       </div>
 
