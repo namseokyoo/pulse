@@ -76,6 +76,11 @@ export default async function PostDetailPage({ params }: PostDetailPageProps) {
     notFound();
   }
 
+  // 죽은 글은 작성자만 접근 가능
+  if (postData.is_dead && userId !== postData.author_id) {
+    notFound();
+  }
+
   let balance = 0;
   if (userId) {
     const { data: profileData } = await supabase
