@@ -222,7 +222,7 @@ export function PostDetailClient({ post: initialPost, comments: initialComments,
                 }}
               />
             </div>
-            {balance === 0 && (
+            {userId && balance === 0 && (
               <p className="text-[13px] text-[var(--color-text-muted)]">
                 투표권이 없습니다. 매일 정오에 10개가 충전됩니다.
               </p>
