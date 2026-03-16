@@ -13,12 +13,13 @@ import { VoteBalance } from "@/components/pulse/VoteBalance";
 import { createClient } from "@/lib/supabase/client";
 import { calculateVitality } from "@/lib/utils/vitality";
 import { cn } from "@/lib/utils/format";
-import type { PostType, CommentType, ReportReason } from "@/types";
+import type { CommentType, GameRules, PostType, ReportReason } from "@/types";
 
 interface PostDetailClientProps {
   post: PostType;
   comments: CommentType[];
   balance: number;
+  gameRules: GameRules;
   userId?: string;
 }
 
@@ -33,7 +34,13 @@ type CastVoteResult = {
   is_dead?: boolean;
 };
 
-export function PostDetailClient({ post: initialPost, comments: initialComments, balance: initialBalance, userId }: PostDetailClientProps) {
+export function PostDetailClient({
+  post: initialPost,
+  comments: initialComments,
+  balance: initialBalance,
+  gameRules,
+  userId,
+}: PostDetailClientProps) {
   const router = useRouter();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const supabase = createClient() as any;
@@ -47,7 +54,7 @@ export function PostDetailClient({ post: initialPost, comments: initialComments,
   const [voteError, setVoteError] = useState<string | null>(null);
   const [pendingVote, setPendingVote] = useState<{ type: "like" | "dislike" } | null>(null);
 
-  const vitality = calculateVitality(post.expiresAt);
+  const vitality = calculateVitality(post.expiresAt, post.initialTtlMinutes ?? 360);
 
   const handleVote = useCallback(async (type: "like" | "dislike", amount: number) => {
     if (!userId) {
@@ -64,9 +71,6 @@ export function PostDetailClient({ post: initialPost, comments: initialComments,
       ...prev,
       likes: type === "like" ? prev.likes + amount : prev.likes,
       dislikes: type === "dislike" ? prev.dislikes + amount : prev.dislikes,
-      expiresAt: new Date(
-        prev.expiresAt.getTime() + (type === "like" ? amount * 10 * 60000 : -amount * 10 * 60000)
-      ),
     }));
     setBalance((b) => b - amount);
     setVoteError(null);
@@ -224,7 +228,7 @@ export function PostDetailClient({ post: initialPost, comments: initialComments,
             </div>
             {userId && balance === 0 && (
               <p className="text-[13px] text-[var(--color-text-muted)]">
-                투표권이 없습니다. 매일 정오에 10개가 충전됩니다.
+                {`투표권이 없습니다. 매일 정오에 ${gameRules.dailyFreeVotes}개가 충전됩니다.`}
               </p>
             )}
           </div>

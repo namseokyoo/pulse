@@ -7,7 +7,7 @@ import { PostList } from "@/components/pulse/PostList";
 import { VoteBalance } from "@/components/pulse/VoteBalance";
 import { BottomNav } from "@/components/layout/BottomNav";
 import { calculateVitality } from "@/lib/utils/vitality";
-import type { PostType, SortOption } from "@/types";
+import type { GameRules, PostType, SortOption } from "@/types";
 
 const FILTER_OPTIONS = [
   { value: "latest", label: "최신순" },
@@ -18,16 +18,17 @@ const FILTER_OPTIONS = [
 interface FeedClientProps {
   initialPosts: PostType[];
   balance: number;
+  gameRules: GameRules;
   userId?: string;
 }
 
-export function FeedClient({ initialPosts, balance, userId }: FeedClientProps) {
+export function FeedClient({ initialPosts, balance, gameRules, userId }: FeedClientProps) {
   const [sort, setSort] = useState<SortOption>("latest");
 
   const sortedPosts = useMemo(() => {
     const withVitality = initialPosts.map((p) => ({
       ...p,
-      vitality: calculateVitality(p.expiresAt),
+      vitality: calculateVitality(p.expiresAt, p.initialTtlMinutes ?? 360),
     }));
 
     switch (sort) {
@@ -72,7 +73,7 @@ export function FeedClient({ initialPosts, balance, userId }: FeedClientProps) {
               투표하고 글의 생명을 결정하세요
             </p>
             <p className="text-[13px] text-[var(--color-text-muted)] mb-3">
-              좋아요는 +10분, 싫어요는 -10분의 생명력을 변화시킵니다
+              {`좋아요는 +${gameRules.voteTimeChangeMinutes}분, 싫어요는 -${gameRules.voteTimeChangeMinutes}분의 생명력을 변화시킵니다`}
             </p>
             <Link
               href="/login"

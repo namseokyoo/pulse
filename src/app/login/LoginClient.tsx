@@ -3,8 +3,19 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import type { GameRules } from "@/types";
 
-export function LoginClient() {
+interface LoginClientProps {
+  gameRules: GameRules;
+}
+
+function formatMinutes(minutes: number): string {
+  if (minutes >= 60 && minutes % 60 === 0) return `${minutes / 60}시간`;
+  if (minutes >= 60) return `${Math.floor(minutes / 60)}시간 ${minutes % 60}분`;
+  return `${minutes}분`;
+}
+
+export function LoginClient({ gameRules }: LoginClientProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [hasConsented, setHasConsented] = useState(false);
   const [agreements, setAgreements] = useState({
@@ -285,7 +296,7 @@ export function LoginClient() {
 
       {/* 최하단 문구 */}
       <p className="text-[13px] text-[var(--color-text-muted)] mt-6">
-        모든 글은 태어날 때부터 6시간의 생명력을 가집니다
+        {`모든 글은 태어날 때부터 ${formatMinutes(gameRules.initialTtlMinutes)}의 생명력을 가집니다`}
       </p>
     </div>
   );

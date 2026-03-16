@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { FeedClient } from "./FeedClient";
-import type { PostType } from "@/types";
+import type { Database, GameRules, PostType } from "@/types";
 
 export const dynamic = "force-dynamic";
 
@@ -10,11 +10,14 @@ type PostWithProfile = {
   content: string;
   like_count: number;
   dislike_count: number;
+  initial_ttl_minutes: number;
   expires_at: string;
   created_at: string;
   author_id: string;
   profiles: { nickname: string } | null;
 };
+
+type GameRulesRow = Database["public"]["Tables"]["game_rules"]["Row"];
 
 export default async function FeedPage() {
   const supabase = await createClient();
@@ -22,6 +25,7 @@ export default async function FeedPage() {
   const [
     { data: claimsData, error: claimsError },
     { data: postsData },
+    { data: gameRulesData },
   ] = await Promise.all([
     supabase.auth.getClaims(),
     supabase
@@ -32,6 +36,7 @@ export default async function FeedPage() {
         content,
         like_count,
         dislike_count,
+        initial_ttl_minutes,
         expires_at,
         created_at,
         author_id,
@@ -42,6 +47,11 @@ export default async function FeedPage() {
       .gt("expires_at", new Date().toISOString())
       .order("created_at", { ascending: false })
       .limit(50),
+    supabase
+      .from("game_rules")
+      .select("vote_time_change_minutes, daily_free_votes, initial_ttl_minutes")
+      .eq("id", true)
+      .single(),
   ]);
 
   const userId = claimsError ? undefined : claimsData?.claims.sub ?? undefined;
@@ -67,10 +77,19 @@ export default async function FeedPage() {
     vitality: 0,
     likes: p.like_count,
     dislikes: p.dislike_count,
+    initialTtlMinutes: p.initial_ttl_minutes,
     expiresAt: new Date(p.expires_at),
     createdAt: new Date(p.created_at),
     authorId: p.author_id,
   }));
 
-  return <FeedClient initialPosts={posts} balance={balance} userId={userId} />;
+  const rules = gameRulesData as GameRulesRow | null;
+
+  const gameRules: GameRules = {
+    voteTimeChangeMinutes: rules?.vote_time_change_minutes ?? 10,
+    dailyFreeVotes: rules?.daily_free_votes ?? 10,
+    initialTtlMinutes: rules?.initial_ttl_minutes ?? 360,
+  };
+
+  return <FeedClient initialPosts={posts} balance={balance} userId={userId} gameRules={gameRules} />;
 }

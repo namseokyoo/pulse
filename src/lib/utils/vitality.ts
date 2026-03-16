@@ -3,18 +3,17 @@
 // VitalityBar와 VitalityTimer가 공유
 // ============================================================
 
-const INITIAL_MINUTES = 360; // 6시간
-
 /**
  * expiresAt 기준으로 남은 생명력(0-100)을 계산
- * 초기 생명력 6시간 대비 현재 남은 시간 비율
+ * initialTtlMinutes: 글 생성 시점의 초기 TTL (game_rules.initial_ttl_minutes 스냅샷)
+ * 기본값 360은 하위 호환성 유지용
  */
-export function calculateVitality(expiresAt: Date): number {
+export function calculateVitality(expiresAt: Date, initialTtlMinutes: number = 360): number {
   const now = Date.now();
   const remaining = expiresAt.getTime() - now;
   if (remaining <= 0) return 0;
 
-  const initialMs = INITIAL_MINUTES * 60 * 1000;
+  const initialMs = initialTtlMinutes * 60 * 1000;
   const vitality = (remaining / initialMs) * 100;
   return Math.min(100, Math.max(0, Math.round(vitality)));
 }
