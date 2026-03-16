@@ -6,14 +6,16 @@ export async function GET(request: NextRequest) {
   const code = searchParams.get("code");
   const next = searchParams.get("next") ?? "/";
 
-  const forwardedHost = request.headers.get("x-forwarded-host");
   const isLocalEnv = process.env.NODE_ENV === "development";
+  // NEXT_PUBLIC_SITE_URL을 최우선으로 사용 (커스텀 도메인 보장)
+  // x-forwarded-host는 Vercel 내부 도메인을 반환할 수 있어 사용하지 않음
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
 
   let redirectUrl: string;
   if (isLocalEnv) {
     redirectUrl = `${origin}${next}`;
-  } else if (forwardedHost) {
-    redirectUrl = `https://${forwardedHost}${next}`;
+  } else if (siteUrl) {
+    redirectUrl = `${siteUrl}${next}`;
   } else {
     redirectUrl = `${origin}${next}`;
   }
