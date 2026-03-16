@@ -1,6 +1,6 @@
-# Pulse Design Tokens
+# PulseUp Design Tokens
 
-`Pulse`는 다크 모드 전용 커뮤니티 앱이다. 아래 토큰은 `Next.js + Tailwind CSS + shadcn/ui` 기준으로 바로 옮겨 쓸 수 있는 값만 남겼다.
+`PulseUp`은 다크 모드 전용 커뮤니티 앱이다. 아래 토큰은 `Next.js + Tailwind CSS + shadcn/ui` 기준으로 바로 옮겨 쓸 수 있는 값만 남겼다.
 
 ## 1. Color Tokens
 

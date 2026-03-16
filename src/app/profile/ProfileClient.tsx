@@ -96,7 +96,7 @@ export function ProfileClient({ nickname, balance, alivePosts, deadPosts, userId
                 <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
               </svg>
             </div>
-            <span className="text-[18px] font-bold tracking-[0.05em] text-[var(--color-text-primary)]">PULSE</span>
+            <span className="text-[18px] font-bold tracking-[0.05em] text-[var(--color-text-primary)]">PULSEUP</span>
           </Link>
           <VoteBalance balance={balance} variant="compact" />
         </div>

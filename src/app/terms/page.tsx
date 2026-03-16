@@ -20,7 +20,7 @@ export default function TermsPage() {
               1. 이용 자격
             </h2>
             <p className="text-[15px] leading-7">
-              Pulse 서비스는 만 14세 이상 누구나 이용하실 수 있습니다.
+              PulseUp 서비스는 만 14세 이상 누구나 이용하실 수 있습니다.
               14세 미만의 경우 법정대리인의 동의가 필요합니다.
             </p>
           </section>
@@ -66,7 +66,7 @@ export default function TermsPage() {
               5. 서비스 변경
             </h2>
             <p className="text-[15px] leading-7">
-              Pulse는 서비스 개선을 위해 기능을 추가, 수정, 삭제할 수 있습니다.
+              PulseUp은 서비스 개선을 위해 기능을 추가, 수정, 삭제할 수 있습니다.
               중요한 변경사항은 서비스 내 공지를 통해 안내드립니다.
             </p>
           </section>
@@ -76,7 +76,7 @@ export default function TermsPage() {
               6. 면책조항
             </h2>
             <p className="text-[15px] leading-7">
-              Pulse는 서비스 중단, 데이터 손실, 시스템 장애 등 불가피한 사유로 인한 손해에 대해
+              PulseUp은 서비스 중단, 데이터 손실, 시스템 장애 등 불가피한 사유로 인한 손해에 대해
               책임을 지지 않습니다. 천재지변, 전쟁, 폭동, 테러 등 불가항력적 사유로 인한
               서비스 중단 시에도 동일하게 적용됩니다.
             </p>
@@ -99,9 +99,9 @@ export default function TermsPage() {
               8. 손해배상
             </h2>
             <p className="text-[15px] leading-7">
-              회원이 본 약관을 위반하여 Pulse 또는 제3자에게 손해를 끼친 경우, 해당 회원은
-              그 손해를 배상할 책임이 있습니다. Pulse의 서비스 이용과 관련하여 발생한
-              손해에 대해 Pulse의 배상 책임은 관련 법령이 허용하는 최대 범위 내에서 제한됩니다.
+              회원이 본 약관을 위반하여 PulseUp 또는 제3자에게 손해를 끼친 경우, 해당 회원은
+              그 손해를 배상할 책임이 있습니다. PulseUp의 서비스 이용과 관련하여 발생한
+              손해에 대해 PulseUp의 배상 책임은 관련 법령이 허용하는 최대 범위 내에서 제한됩니다.
             </p>
           </section>
 
@@ -111,7 +111,7 @@ export default function TermsPage() {
             </h2>
             <p className="text-[15px] leading-7">
               본 약관은 대한민국 법률에 따라 해석되고 적용됩니다. 서비스 이용과 관련하여
-              분쟁이 발생한 경우, Pulse와 회원은 상호 협의를 통해 해결하는 것을 우선으로 합니다.
+              분쟁이 발생한 경우, PulseUp과 회원은 상호 협의를 통해 해결하는 것을 우선으로 합니다.
               협의가 이루어지지 않을 경우 민사소송법에 따른 관할 법원을 제1심 법원으로 합니다.
             </p>
           </section>
@@ -121,7 +121,7 @@ export default function TermsPage() {
               10. 개인정보처리방침
             </h2>
             <p className="text-[15px] leading-7">
-              Pulse의 개인정보 수집 및 이용에 관한 사항은{" "}
+              PulseUp의 개인정보 수집 및 이용에 관한 사항은{" "}
               <Link href="/privacy" className="text-[var(--color-primary)] underline hover:opacity-80 transition-opacity">
                 개인정보처리방침
               </Link>

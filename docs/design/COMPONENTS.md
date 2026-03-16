@@ -1,4 +1,4 @@
-# Pulse Phase 1 Components
+# PulseUp Phase 1 Components
 
 아래 명세는 `app/components/pulse/*` 기준으로 바로 구현 가능한 수준의 계약서다. 예시 코드는 `Next.js + Tailwind CSS + shadcn/ui`를 기준으로 작성했다.
 

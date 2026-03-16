@@ -59,7 +59,7 @@ export function LoginClient({ gameRules }: LoginClientProps) {
 
         {/* PULSE 로고 */}
         <h1 className="text-[48px] font-bold tracking-[0.2em] text-[var(--color-text-primary)] mb-3">
-          PULSE
+          PULSEUP
         </h1>
 
         {/* 태그라인 */}

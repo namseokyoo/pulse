@@ -39,7 +39,7 @@ export default async function AdminLayout({
     <div className="flex min-h-screen bg-[#0a0a0a] text-white">
       <aside className="flex w-56 flex-col border-r border-[#2a2a2a] bg-[#141414]">
         <div className="border-b border-[#2a2a2a] p-4">
-          <span className="text-sm font-bold text-red-500">PULSE ADMIN</span>
+          <span className="text-sm font-bold text-red-500">PULSEUP ADMIN</span>
         </div>
         <nav className="flex-1 p-2">
           {navItems.map((item) => (

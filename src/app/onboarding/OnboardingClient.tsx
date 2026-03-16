@@ -117,12 +117,12 @@ export function OnboardingClient({ gameRules }: OnboardingClientProps) {
       <div className="flex flex-col items-center justify-center flex-1 gap-6 w-full max-w-sm">
         {/* PULSE 로고 */}
         <h1 className="text-[36px] font-bold tracking-[0.2em] text-[var(--color-text-primary)]">
-          PULSE
+          PULSEUP
         </h1>
 
         {/* 환영 메시지 */}
         <p className="text-[18px] font-semibold text-[var(--color-text-primary)] text-center">
-          Pulse에 오신 것을 환영합니다
+          PulseUp에 오신 것을 환영합니다
         </p>
 
         {/* 서비스 소개 */}

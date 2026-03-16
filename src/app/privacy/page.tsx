@@ -20,7 +20,7 @@ export default function PrivacyPage() {
               1. 수집하는 개인정보
             </h2>
             <p className="text-[15px] leading-7 mb-3">
-              Pulse(펄스)는 서비스 제공을 위해 다음의 개인정보를 수집합니다.
+              PulseUp(펄스업)은 서비스 제공을 위해 다음의 개인정보를 수집합니다.
             </p>
             <ul className="text-[15px] leading-7 space-y-2 list-disc list-inside">
               <li>이메일 주소 (Google OAuth를 통해 수집)</li>
@@ -45,8 +45,8 @@ export default function PrivacyPage() {
               3. Google OAuth 소셜 로그인
             </h2>
             <p className="text-[15px] leading-7">
-              Pulse는 Google OAuth를 통한 소셜 로그인을 제공합니다.
-              로그인 시 Google의 개인정보처리방침이 함께 적용되며, Pulse는 Google로부터
+              PulseUp은 Google OAuth를 통한 소셜 로그인을 제공합니다.
+              로그인 시 Google의 개인정보처리방침이 함께 적용되며, PulseUp은 Google로부터
               이메일 주소와 기본 프로필 정보(이름)만 수집합니다. 이메일은 서비스 내에서
               공개되지 않으며, 닉네임으로만 표시됩니다.
             </p>
@@ -71,7 +71,7 @@ export default function PrivacyPage() {
               5. 제3자 제공 및 위탁
             </h2>
             <p className="text-[15px] leading-7 mb-3">
-              Pulse는 원칙적으로 사용자의 개인정보를 외부에 제공하지 않습니다.
+              PulseUp은 원칙적으로 사용자의 개인정보를 외부에 제공하지 않습니다.
               단, 서비스 운영을 위해 아래 수탁업체를 이용합니다.
             </p>
             <ul className="text-[15px] leading-7 space-y-2 list-disc list-inside">
@@ -88,7 +88,7 @@ export default function PrivacyPage() {
               6. 개인정보보호 책임자
             </h2>
             <p className="text-[15px] leading-7">
-              Pulse의 개인정보보호 책임자는 SidequestLab 운영팀입니다.
+              PulseUp의 개인정보보호 책임자는 SidequestLab 운영팀입니다.
               개인정보 관련 문의, 열람, 정정, 삭제 요청은 서비스 내 게시글 또는
               이메일을 통해 연락해주세요. 요청은 10일 이내에 처리됩니다.
             </p>
