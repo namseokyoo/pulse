@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { cn } from "@/lib/utils/format";
+import type { GameRules } from "@/types";
 
 export interface PostFormValues {
   title: string;
@@ -12,9 +13,21 @@ export interface PostFormProps {
   onSubmit: (values: PostFormValues) => void;
   maxLength?: number;
   isSubmitting?: boolean;
+  gameRules?: GameRules;
 }
 
-export function PostForm({ onSubmit, maxLength = 500, isSubmitting = false }: PostFormProps) {
+function formatMinutes(minutes: number): string {
+  if (minutes >= 60 && minutes % 60 === 0) return `${minutes / 60}시간`;
+  if (minutes >= 60) return `${Math.floor(minutes / 60)}시간 ${minutes % 60}분`;
+  return `${minutes}분`;
+}
+
+export function PostForm({
+  onSubmit,
+  maxLength = 500,
+  isSubmitting = false,
+  gameRules,
+}: PostFormProps) {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
 
@@ -62,10 +75,10 @@ export function PostForm({ onSubmit, maxLength = 500, isSubmitting = false }: Po
       {/* 생명력 안내 박스 */}
       <div className="rounded-xl border border-[rgba(255,68,68,0.25)] bg-[var(--color-primary-dim)] p-5">
         <p className="text-[14px] font-semibold text-[var(--color-primary)] mb-1">
-          ♥ 이 글은 6시간의 생명력을 갖고 태어납니다
+          {`♥ 이 글은 ${formatMinutes(gameRules?.initialTtlMinutes ?? 360)}의 생명력을 갖고 태어납니다`}
         </p>
         <p className="text-[13px] text-[var(--color-text-secondary)]">
-          좋아요를 받으면 +10분, 싫어요를 받으면 -10분. 반응에 따라 글의 맥박이 길어지거나 멎습니다.
+          {`좋아요를 받으면 +${gameRules?.voteTimeChangeMinutes ?? 10}분, 싫어요를 받으면 -${gameRules?.voteTimeChangeMinutes ?? 10}분. 반응에 따라 글의 맥박이 길어지거나 멎습니다.`}
         </p>
       </div>
 

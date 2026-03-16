@@ -13,7 +13,7 @@ export interface PostCardProps {
 }
 
 export function PostCard({ post }: PostCardProps) {
-  const vitality = calculateVitality(post.expiresAt);
+  const vitality = calculateVitality(post.expiresAt, post.initialTtlMinutes ?? 360);
 
   return (
     <Link href={`/post/${post.id}`} className="block">
