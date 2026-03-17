@@ -9,6 +9,7 @@ export function BottomNav() {
   const isFeedActive = pathname === "/";
   const isProfileActive = pathname.startsWith("/profile");
   const isWriteActive = pathname === "/write";
+  const isPurchaseActive = pathname === "/purchase";
 
   return (
     <nav
@@ -32,6 +33,24 @@ export function BottomNav() {
             <polyline points="9 22 9 12 15 12 15 22" />
           </svg>
           피드
+        </Link>
+
+        <Link
+          href="/purchase"
+          className={cn(
+            "flex-1 flex flex-col items-center justify-center min-h-[56px] gap-1 text-[11px] font-semibold transition-colors",
+            isPurchaseActive
+              ? "text-[var(--color-primary)]"
+              : "text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)]"
+          )}
+          aria-current={isPurchaseActive ? "page" : undefined}
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <circle cx="9" cy="21" r="1" />
+            <circle cx="20" cy="21" r="1" />
+            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+          </svg>
+          구매
         </Link>
 
         <div className="flex-1 flex flex-col items-center justify-end pb-2">

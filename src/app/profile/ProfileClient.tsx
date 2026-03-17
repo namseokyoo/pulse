@@ -28,6 +28,8 @@ export function ProfileClient({ nickname, balance, alivePosts, deadPosts, userId
   const router = useRouter();
   const supabase = createClient();
   const [tab, setTab] = useState("alive");
+  const [orders, setOrders] = useState<Array<{ id: string; product_qty: number; amount_krw: number; status: string; created_at: string }>>([]);
+  const [ordersLoading, setOrdersLoading] = useState(false);
   const [isEditingNickname, setIsEditingNickname] = useState(false);
   const [newNickname, setNewNickname] = useState(nickname);
   const [currentNickname, setCurrentNickname] = useState(nickname);
@@ -71,6 +73,21 @@ export function ProfileClient({ nickname, balance, alivePosts, deadPosts, userId
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentNickname, isEditingNickname, newNickname, userId]);
+
+  useEffect(() => {
+    const fetchOrders = async () => {
+      setOrdersLoading(true);
+      const { data } = await supabase
+        .from("payment_orders")
+        .select("id, product_qty, amount_krw, status, created_at")
+        .order("created_at", { ascending: false })
+        .limit(20);
+      if (data) setOrders(data as typeof orders);
+      setOrdersLoading(false);
+    };
+    fetchOrders();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleSaveNickname = async () => {
     if (!newNickname.trim() || newNickname.trim() === currentNickname) {
@@ -271,6 +288,43 @@ export function ProfileClient({ nickname, balance, alivePosts, deadPosts, userId
               계정 삭제
             </button>
           </div>
+        </div>
+
+        <div className="mt-8">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-[16px] font-semibold text-[var(--color-text-primary)]">구매 내역</h2>
+            <a href="/purchase" className="text-[13px] text-[var(--color-primary)] hover:opacity-80 transition-opacity">투표권 구매 →</a>
+          </div>
+          {ordersLoading ? (
+            <p className="text-[14px] text-[var(--color-text-muted)] py-4 text-center">불러오는 중...</p>
+          ) : orders.length === 0 ? (
+            <p className="text-[14px] text-[var(--color-text-muted)] py-4 text-center">구매 내역이 없습니다</p>
+          ) : (
+            <div className="space-y-2">
+              {orders.map((order) => {
+                const statusMap: Record<string, { label: string; color: string }> = {
+                  fulfilled: { label: "완료", color: "text-[var(--color-like)]" },
+                  refunded: { label: "환불", color: "text-[var(--color-danger)]" },
+                  created: { label: "처리중", color: "text-[var(--color-text-muted)]" },
+                  paid: { label: "처리중", color: "text-[var(--color-text-muted)]" },
+                  failed: { label: "실패", color: "text-[var(--color-danger)]" },
+                };
+                const s = statusMap[order.status] ?? { label: order.status, color: "text-[var(--color-text-muted)]" };
+                return (
+                  <div key={order.id} className="flex items-center justify-between p-3 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)]">
+                    <div>
+                      <p className="text-[14px] font-semibold text-[var(--color-text-primary)]">투표권 {order.product_qty}개</p>
+                      <p className="text-[12px] text-[var(--color-text-muted)]">{new Date(order.created_at).toLocaleDateString("ko-KR")}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-[14px] font-semibold text-[var(--color-text-primary)]">{order.amount_krw.toLocaleString()}원</p>
+                      <p className={"text-[12px] font-medium " + s.color}>{s.label}</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </main>
 

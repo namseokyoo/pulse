@@ -289,6 +289,8 @@ export interface Database {
           free_after: number;
           paid_after: number;
           reference_id: string | null;
+          reference_type: string | null;
+          payment_order_id: string | null;
           created_at: string;
         };
         Insert: {
@@ -300,6 +302,8 @@ export interface Database {
           free_after: number;
           paid_after: number;
           reference_id?: string | null;
+          reference_type?: string | null;
+          payment_order_id?: string | null;
           created_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["vote_balance_logs"]["Insert"]>;
@@ -327,6 +331,114 @@ export interface Database {
           created_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["reports"]["Insert"]>;
+        Relationships: [];
+      };
+      payment_orders: {
+        Row: {
+          id: string;
+          profile_id: string;
+          product_type: "paid_votes" | "nickname_change_pass";
+          product_qty: number;
+          amount_krw: number;
+          provider: string;
+          provider_order_id: string | null;
+          provider_payment_id: string | null;
+          idempotency_key: string;
+          status:
+            | "created"
+            | "paid"
+            | "fulfilled"
+            | "cancel_requested"
+            | "cancelled"
+            | "refund_pending"
+            | "refunded"
+            | "failed";
+          paid_at: string | null;
+          fulfilled_at: string | null;
+          failed_reason: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          profile_id: string;
+          product_type: "paid_votes" | "nickname_change_pass";
+          product_qty: number;
+          amount_krw: number;
+          provider?: string;
+          provider_order_id?: string | null;
+          provider_payment_id?: string | null;
+          idempotency_key: string;
+          status?:
+            | "created"
+            | "paid"
+            | "fulfilled"
+            | "cancel_requested"
+            | "cancelled"
+            | "refund_pending"
+            | "refunded"
+            | "failed";
+          paid_at?: string | null;
+          fulfilled_at?: string | null;
+          failed_reason?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["payment_orders"]["Insert"]>;
+        Relationships: [];
+      };
+      payment_events: {
+        Row: {
+          id: string;
+          payment_order_id: string | null;
+          provider: string;
+          provider_event_id: string | null;
+          event_type: string;
+          payload: Record<string, unknown>;
+          received_at: string;
+          processed_at: string | null;
+          process_result: string | null;
+        };
+        Insert: {
+          id?: string;
+          payment_order_id?: string | null;
+          provider?: string;
+          provider_event_id?: string | null;
+          event_type: string;
+          payload: Record<string, unknown>;
+          received_at?: string;
+          processed_at?: string | null;
+          process_result?: string | null;
+        };
+        Update: Partial<Database["public"]["Tables"]["payment_events"]["Insert"]>;
+        Relationships: [];
+      };
+      user_entitlements: {
+        Row: {
+          id: string;
+          profile_id: string;
+          payment_order_id: string;
+          entitlement_type: "paid_votes" | "nickname_change_pass";
+          granted_qty: number;
+          remaining_qty: number;
+          status: "active" | "consumed" | "revoked" | "expired";
+          expires_at: string | null;
+          created_at: string;
+          consumed_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          profile_id: string;
+          payment_order_id: string;
+          entitlement_type: "paid_votes" | "nickname_change_pass";
+          granted_qty: number;
+          remaining_qty: number;
+          status?: "active" | "consumed" | "revoked" | "expired";
+          expires_at?: string | null;
+          created_at?: string;
+          consumed_at?: string | null;
+        };
+        Update: Partial<Database["public"]["Tables"]["user_entitlements"]["Insert"]>;
         Relationships: [];
       };
     };
@@ -469,6 +581,14 @@ export interface Database {
           recent_posts?: AdminUserDetail["recent_posts"];
           recent_votes?: AdminUserDetail["recent_votes"];
         };
+      };
+      fulfill_payment_order: {
+        Args: { p_order_id: string; p_provider_payment_id: string };
+        Returns: Record<string, unknown>;
+      };
+      refund_payment_order: {
+        Args: { p_order_id: string };
+        Returns: Record<string, unknown>;
       };
     };
   };

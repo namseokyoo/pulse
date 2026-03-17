@@ -1,12 +1,12 @@
 # PRD: PulseUp (펄스업) — 살아있는 익명 게시판
 
-> **v2.3** — 보안 강화 + QoL 개선 반영
+> **v2.4** — 결제 기능 설계 통합 + 태그라인 변경
 
 ## 문서 정보
 
 | 항목 | 내용 |
 |------|------|
-| 버전 | v2.3 |
+| 버전 | v2.4 |
 | 작성일 | 2026-03-17 |
 | 작성자 | CEO Agent |
 | 상태 | 회장님 승인 |
@@ -16,7 +16,7 @@
 ## 1. 제품 개요
 
 - **이름**: PulseUp (펄스업)
-- **태그라인**: "이 글은 아직 살아있다"
+- **태그라인**: "글에 생명력을 부여하다"
 - **컨셉**: 모든 글에는 맥박(생명력)이 있다. 사랑받으면 더 오래 살고, 외면당하면 사라진다.
 
 회원제 닉네임 게시판. 모든 글은 작성 시 6시간의 생명력을 갖고 태어난다.
@@ -138,8 +138,8 @@
 ```sql
 -- 프로필
 profiles: id, nickname(UNIQUE), nickname_changed_at,
-          free_votes(10), free_votes_reset_at,
-          paid_votes(0), created_at
+          free_votes(10, CHECK >= 0), free_votes_reset_at,
+          paid_votes(0, CHECK >= 0), created_at
 
 -- 게시글
 posts: id, author_id, author_nickname, title, content(TEXT),
@@ -161,7 +161,9 @@ vote_balance_logs: id, user_id,
                    change_type(daily_reset/vote_spend/purchase/refund),
                    free_change, paid_change,
                    free_after, paid_after,
-                   reference_id, created_at
+                   reference_id, reference_type(post/payment_order/refund/manual),
+                   payment_order_id,
+                   created_at
 
 -- 신고
 reports: id, reporter_id, target_type(post/comment),
@@ -169,11 +171,27 @@ reports: id, reporter_id, target_type(post/comment),
          created_at,
          UNIQUE(reporter_id, target_type, target_id)
 
--- 결제 기록 (Phase 2)
-payment_records: id, user_id, lemon_order_id(UNIQUE),
-                 votes_purchased, amount_krw,
-                 status(pending/completed/refunded),
-                 created_at
+-- 결제 주문 원장 (Phase 2)
+payment_orders: id, profile_id, product_type(paid_votes/nickname_change_pass),
+               product_qty, amount_krw,
+               provider, provider_order_id(UNIQUE), provider_payment_id(UNIQUE),
+               idempotency_key(UNIQUE),
+               status(created/paid/fulfilled/cancel_requested/cancelled/refund_pending/refunded/failed),
+               paid_at, fulfilled_at, failed_reason,
+               created_at, updated_at
+
+-- 웹훅 수신함 (Phase 2)
+payment_events: id, payment_order_id, provider,
+               provider_event_id(UNIQUE per provider),
+               event_type, payload(JSONB),
+               received_at, processed_at, process_result
+
+-- 범용 권리 원장 (Phase 2~3)
+user_entitlements: id, profile_id, payment_order_id,
+                  entitlement_type(paid_votes/nickname_change_pass),
+                  granted_qty, remaining_qty,
+                  status(active/consumed/revoked/expired),
+                  expires_at, created_at, consumed_at
 
 -- 게임 설정 (singleton)
 game_rules: id(TRUE), vote_time_change_minutes(10),
@@ -272,18 +290,52 @@ admin_users: id, uid(UNIQUE), created_at
 **제외 (→ Phase 1.3+)**:
 - 프로필/기여 보상 통계 (생존률, 살린 글 수 등) — DB 스키마 추가 필요, 규모 큼
 
+### Phase 1.5: 결제 기반 인프라 (선제 구축)
+
+**목적**: 결제 기능 도입 시 DB 구조 충돌/정합성 문제를 사전 차단
+
+| 항목 | 내용 |
+|------|------|
+| profiles CHECK 제약 | free_votes >= 0, paid_votes >= 0 |
+| vote_balance_logs 확장 | reference_type, payment_order_id 컬럼 추가 |
+| 기존 데이터 백필 | vote_spend → reference_type='post' |
+
+**완료 기준**:
+- [x] CHECK 제약 추가 (음수 방지)
+- [x] reference_type 컬럼 추가 + 백필
+- [x] 기존 cast_vote RPC 정상 동작 확인
+
 ### Phase 2: 결제 + 확장 (2~3주)
-- Lemon Squeezy 결제 연동 + 구매 페이지
-- 유료 투표권 (append-only ledger)
+
+**결제 아키텍처 (3축 원장)**:
+- payment_orders: 결제 주문 원장 (상태머신: created→paid→fulfilled→cancelled/refunded)
+- payment_events: PG 웹훅 수신함 (provider_event_id UNIQUE로 멱등 처리)
+- user_entitlements: 범용 권리 원장 (투표권, 닉네임 변경권 등 통합)
+
+**결제 플로우**:
+1. 클라이언트 → payment_order 생성 (status=created)
+2. PG 결제 진행 (Lemon Squeezy / 토스페이먼츠)
+3. 웹훅 수신 → payment_events 기록 (멱등키로 중복 차단)
+4. status=paid → profiles.paid_votes 충전 + vote_balance_logs 기록 → status=fulfilled
+5. 단일 트랜잭션으로 처리 (3~4 원자적)
+
+**환불 정책**:
+- 미사용 유료투표권만 환불 가능
+- 사용분 차감 후 부분환불
+- 환불 시 vote_balance_logs에 change_type='refund' 기록
+
+**포함 기능**:
+- 유료 투표권 구매 (10/50/100개 패키지)
+- 구매 내역 페이지
+- 결제 상태 관리 (관리자 대시보드)
 - 이메일 + 카카오톡 로그인
 - 모듈식 에디터 (이미지/링크OG/미니투표)
 - 대댓글
-- 결제 내역 페이지
 
 ### Phase 3: 고도화 (4주)
 - 알림 시스템
 - AI 모더레이션
-- 닉네임 수정권 판매
+- 닉네임 변경권 판매 — user_entitlements 테이블 활용, enforce_nickname_change_limit 트리거에 entitlement 소비 경로 추가
 - SEO / PWA
 
 ---
@@ -298,7 +350,10 @@ admin_users: id, uid(UNIQUE), created_at
 | Rate Limiting | 글 5건/분, 투표 30건/분 |
 | XSS | 입력 sanitization |
 | 다계정 | Google OAuth 1인 1계정 |
-| 결제 (Phase 2) | HMAC + idempotency + SKU 검증 |
+| 결제 (Phase 2) | HMAC 서명 검증 + provider_event_id UNIQUE 멱등 + SKU/금액 재검증 |
+| 결제 정합성 | 웹훅→충전 단일 트랜잭션 + reconciliation 배치 |
+| 음수 방지 | profiles.free_votes/paid_votes CHECK >= 0 |
+| 환불 추적 | vote_balance_logs.change_type='refund' + payment_order_id FK |
 | 닉네임 변경 | BEFORE UPDATE 트리거 — 서버 시각 강제, 7일 미경과 시 차단 |
 | 신고 레이스 | UNIQUE 제약 + ON CONFLICT DO NOTHING (TOCTOU 방지) |
 | 투표 레이스 | FOR UPDATE 행 잠금 (만료 경계 동시 투표 방지) |
@@ -312,7 +367,7 @@ admin_users: id, uid(UNIQUE), created_at
 |------|------|
 | 무료 | 글, 댓글, 무료 투표권 10개/일 |
 | 수익원 1 | 유료 투표권 — 10개=2,000원 / 50개=9,000원 / 100개=16,000원 |
-| 수익원 2 | 닉네임 수정권 (Phase 3) |
+| 수익원 2 | 닉네임 변경권 (Phase 3) — 1회 = 1,000원, user_entitlements 통합 관리 |
 | 결제 | Lemon Squeezy (MoR, 수수료 5%+$0.50) |
 
 **마진 시뮬레이션** (1 USD ≈ 1,481 KRW):

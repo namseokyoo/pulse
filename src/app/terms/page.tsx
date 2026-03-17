@@ -134,10 +134,33 @@ export default function TermsPage() {
               에서 확인하실 수 있습니다.
             </p>
           </section>
+
+          <section>
+            <h2 className="text-[18px] font-semibold text-[var(--color-text-primary)] mb-3">
+              11. 유료 서비스 및 결제
+            </h2>
+            <div className="text-[15px] leading-7 space-y-3">
+              <p>
+                PulseUp은 유료 투표권 등 디지털 콘텐츠를 제공합니다.
+                유료 투표권은 구매 즉시 제공이 개시되는 디지털 콘텐츠입니다.
+              </p>
+              <p>
+                콘텐츠 제공이 개시된 이후에는 전자상거래 등에서의 소비자보호에 관한 법률 제17조 제2항 제5호에 따라
+                청약철회가 제한될 수 있습니다.
+              </p>
+              <p>
+                미사용 유료 투표권에 한하여 구매일로부터 7일 이내 고객센터를 통해 환불을 요청하실 수 있습니다.
+                환불 시 결제대행사(PG사) 수수료를 제외한 금액이 반환됩니다.
+              </p>
+              <p>
+                결제는 Lemon Squeezy를 통해 처리되며, 결제 관련 문의는 고객센터로 연락 주시기 바랍니다.
+              </p>
+            </div>
+          </section>
         </div>
 
         <div className="mt-12 pt-8 border-t border-[var(--color-border)] flex items-center justify-between">
-          <span className="text-[13px] text-[var(--color-text-muted)]">최종 업데이트: 2026년 3월</span>
+          <span className="text-[13px] text-[var(--color-text-muted)]">최종 업데이트: 2026년 3월 17일</span>
           <Link href="/privacy" className="text-[13px] text-[var(--color-primary)] hover:opacity-80 transition-opacity">
             개인정보처리방침 보기 →
           </Link>
