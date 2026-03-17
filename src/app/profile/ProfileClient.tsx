@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { ProfileHeader } from "@/components/pulse/ProfileHeader";
 import { FilterTabs } from "@/components/pulse/FilterTabs";
 import { PostList } from "@/components/pulse/PostList";
-import { VoteBalance } from "@/components/pulse/VoteBalance";
+import { VoteInfoPanel } from "@/components/pulse/VoteInfoPanel";
 import { BottomNav } from "@/components/layout/BottomNav";
 import { createClient } from "@/lib/supabase/client";
 import type { PostType } from "@/types";
@@ -18,13 +18,14 @@ const PROFILE_TABS = [
 
 interface ProfileClientProps {
   nickname: string;
-  balance: number;
+  freeVotes: number;
+  paidVotes: number;
   alivePosts: PostType[];
   deadPosts: PostType[];
   userId: string;
 }
 
-export function ProfileClient({ nickname, balance, alivePosts, deadPosts, userId }: ProfileClientProps) {
+export function ProfileClient({ nickname, freeVotes, paidVotes, alivePosts, deadPosts, userId }: ProfileClientProps) {
   const router = useRouter();
   const supabase = createClient();
   const [tab, setTab] = useState("alive");
@@ -156,7 +157,7 @@ export function ProfileClient({ nickname, balance, alivePosts, deadPosts, userId
   return (
     <div className="min-h-screen bg-[var(--color-background)]">
       <header className="sticky top-0 z-20 bg-[var(--color-background)]/90 backdrop-blur-sm border-b border-[var(--color-border)]">
-        <div className="mx-auto max-w-[680px] px-4 h-14 flex items-center justify-between">
+        <div className="mx-auto max-w-[680px] px-4 py-3 flex items-start justify-between gap-3">
           <Link href="/" className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-full bg-[var(--color-primary)] flex items-center justify-center" aria-hidden="true">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -165,7 +166,9 @@ export function ProfileClient({ nickname, balance, alivePosts, deadPosts, userId
             </div>
             <span className="text-[18px] font-bold tracking-[0.05em] text-[var(--color-text-primary)]">PULSEUP</span>
           </Link>
-          <VoteBalance balance={balance} variant="compact" />
+          <div className="w-64">
+            <VoteInfoPanel freeVotes={freeVotes} paidVotes={paidVotes} compact={true} />
+          </div>
         </div>
       </header>
 
@@ -248,7 +251,8 @@ export function ProfileClient({ nickname, balance, alivePosts, deadPosts, userId
         {/* 프로필 헤더 */}
         <ProfileHeader
           nickname={currentNickname}
-          balance={balance}
+          freeVotes={freeVotes}
+          paidVotes={paidVotes}
           onEdit={() => setIsEditingNickname(true)}
         />
 

@@ -72,7 +72,8 @@ export default async function ProfilePage() {
     redirect("/login");
   }
 
-  const balance = (profile.free_votes ?? 0) + (profile.paid_votes ?? 0);
+  const freeVotes = profile.free_votes ?? 0;
+  const paidVotes = profile.paid_votes ?? 0;
 
   const mapPost = (p: PostRow): PostType => ({
     id: p.id,
@@ -94,7 +95,8 @@ export default async function ProfilePage() {
   return (
     <ProfileClient
       nickname={profile.nickname}
-      balance={balance}
+      freeVotes={freeVotes}
+      paidVotes={paidVotes}
       alivePosts={((rawAlivePosts ?? []) as unknown as PostRow[]).map(mapPost)}
       deadPosts={((rawDeadPosts ?? []) as unknown as PostRow[]).map(mapPost)}
       userId={user.id}

@@ -1,14 +1,15 @@
 "use client";
 
-import { VoteBalance } from "./VoteBalance";
+import { VoteInfoPanel } from "./VoteInfoPanel";
 
 export interface ProfileHeaderProps {
   nickname: string;
   onEdit?: () => void;
-  balance: number;
+  freeVotes: number;
+  paidVotes: number;
 }
 
-export function ProfileHeader({ nickname, onEdit, balance }: ProfileHeaderProps) {
+export function ProfileHeader({ nickname, onEdit, freeVotes, paidVotes }: ProfileHeaderProps) {
   return (
     <div className="pt-6 mb-6">
       {/* 닉네임 + 수정 버튼 */}
@@ -30,8 +31,7 @@ export function ProfileHeader({ nickname, onEdit, balance }: ProfileHeaderProps)
         )}
       </div>
 
-      {/* 투표권 잔액 카드 */}
-      <VoteBalance balance={balance} variant="card" />
+      <VoteInfoPanel freeVotes={freeVotes} paidVotes={paidVotes} />
     </div>
   );
 }

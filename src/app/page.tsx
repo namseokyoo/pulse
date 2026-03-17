@@ -57,7 +57,8 @@ export default async function FeedPage() {
 
   const userId = claimsError ? undefined : claimsData?.claims.sub ?? undefined;
 
-  let balance = 0;
+  let freeVotes = 0;
+  let paidVotes = 0;
   if (userId) {
     const { data: profileData } = await supabase
       .from("profiles")
@@ -66,7 +67,8 @@ export default async function FeedPage() {
       .single();
     if (profileData) {
       const p = profileData as { free_votes: number; paid_votes: number };
-      balance = (p.free_votes ?? 0) + (p.paid_votes ?? 0);
+      freeVotes = p.free_votes ?? 0;
+      paidVotes = p.paid_votes ?? 0;
     }
   }
 
@@ -92,5 +94,5 @@ export default async function FeedPage() {
     initialTtlMinutes: rules?.initial_ttl_minutes ?? 360,
   };
 
-  return <FeedClient initialPosts={posts} balance={balance} userId={userId} gameRules={gameRules} />;
+  return <FeedClient initialPosts={posts} freeVotes={freeVotes} paidVotes={paidVotes} userId={userId} gameRules={gameRules} />;
 }

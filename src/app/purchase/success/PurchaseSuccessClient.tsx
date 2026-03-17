@@ -25,24 +25,43 @@ export default function PurchaseSuccessClient({ userId }: { userId: string }) {
     const fetchBalance = async () => {
       if (statusRef.current !== "loading") return;
 
-      const { data } = await supabase
-        .from("profiles")
-        .select("free_votes, paid_votes")
-        .eq("id", userId)
-        .single();
+      const [profileResult, orderResult] = await Promise.all([
+        supabase
+          .from("profiles")
+          .select("free_votes, paid_votes")
+          .eq("id", userId)
+          .single(),
+        supabase
+          .from("payment_orders")
+          .select("id, status, product_qty")
+          .eq("profile_id", userId)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .single(),
+      ]);
 
-      if (!data) return;
+      const profileData = profileResult.data;
+      const recentOrder = orderResult.data;
 
-      setCurrentFree(data.free_votes);
-      setCurrentPaid(data.paid_votes);
+      if (!profileData) return;
 
-      if (initialPaidRef.current === null) {
-        initialPaidRef.current = data.paid_votes;
+      setCurrentFree(profileData.free_votes);
+      setCurrentPaid(profileData.paid_votes);
+
+      if (recentOrder?.status === "fulfilled") {
+        setAddedAmount(recentOrder.product_qty);
+        statusRef.current = "success";
+        setStatus("success");
         return;
       }
 
-      if (data.paid_votes > initialPaidRef.current) {
-        setAddedAmount(data.paid_votes - initialPaidRef.current);
+      if (initialPaidRef.current === null) {
+        initialPaidRef.current = profileData.paid_votes;
+        return;
+      }
+
+      if (profileData.paid_votes > initialPaidRef.current) {
+        setAddedAmount(profileData.paid_votes - initialPaidRef.current);
         statusRef.current = "success";
         setStatus("success");
         return;
