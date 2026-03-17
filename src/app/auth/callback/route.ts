@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
   if (code) {
     const response = NextResponse.redirect(redirectUrl);
 
-    const supabase = createServerClient(
+    const supabase = createServerClient<Database>(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       {
@@ -49,15 +49,11 @@ export async function GET(request: NextRequest) {
       } = await supabase.auth.getUser();
 
       if (user) {
-        const profilesTable = supabase.from("profiles") as any;
-        const { data: profileData } = await profilesTable
+        const { data: profile } = await supabase
+          .from("profiles")
           .select("consented_at")
           .eq("id", user.id)
           .single();
-        const profile = profileData as Pick<
-          Database["public"]["Tables"]["profiles"]["Row"],
-          "consented_at"
-        > | null;
 
         if (!profile?.consented_at) {
           let onboardingUrl: string;

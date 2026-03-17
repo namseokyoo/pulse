@@ -99,8 +99,8 @@ export function OnboardingClient({ gameRules }: OnboardingClientProps) {
       consented_at: new Date().toISOString(),
     };
 
-    const profilesTable = supabase.from("profiles") as any;
-    const { error } = await profilesTable
+    const { error } = await supabase
+      .from("profiles")
       .update(consentUpdate)
       .eq("id", user.id);
 

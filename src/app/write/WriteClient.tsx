@@ -17,8 +17,7 @@ export function WriteClient({ gameRules }: WriteClientProps) {
   const searchParams = useSearchParams();
   const initialTitle = searchParams.get("title") ?? "";
   const initialContent = searchParams.get("content") ?? "";
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const supabase = createClient() as any;
+  const supabase = createClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 

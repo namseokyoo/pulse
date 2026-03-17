@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ProfileHeader } from "@/components/pulse/ProfileHeader";
@@ -26,16 +26,51 @@ interface ProfileClientProps {
 
 export function ProfileClient({ nickname, balance, alivePosts, deadPosts, userId }: ProfileClientProps) {
   const router = useRouter();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const supabase = createClient() as any;
+  const supabase = createClient();
   const [tab, setTab] = useState("alive");
   const [isEditingNickname, setIsEditingNickname] = useState(false);
   const [newNickname, setNewNickname] = useState(nickname);
   const [currentNickname, setCurrentNickname] = useState(nickname);
+  const [nicknameChecking, setNicknameChecking] = useState(false);
   const [nicknameError, setNicknameError] = useState<string | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const trimmedNickname = newNickname.trim();
+
+    if (!isEditingNickname || trimmedNickname.length < 2 || trimmedNickname === currentNickname) {
+      setNicknameChecking(false);
+      setNicknameError(null);
+      return;
+    }
+
+    let isCancelled = false;
+    const timeoutId = window.setTimeout(async () => {
+      setNicknameChecking(true);
+      const { data } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("nickname", trimmedNickname)
+        .maybeSingle();
+
+      if (isCancelled) return;
+
+      if (data && data.id !== userId) {
+        setNicknameError("이미 사용 중인 닉네임입니다");
+      } else {
+        setNicknameError(null);
+      }
+      setNicknameChecking(false);
+    }, 500);
+
+    return () => {
+      isCancelled = true;
+      window.clearTimeout(timeoutId);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentNickname, isEditingNickname, newNickname, userId]);
 
   const handleSaveNickname = async () => {
     if (!newNickname.trim() || newNickname.trim() === currentNickname) {
@@ -47,9 +82,23 @@ export function ProfileClient({ nickname, balance, alivePosts, deadPosts, userId
       return;
     }
 
+    const trimmedNickname = newNickname.trim();
+    setNicknameChecking(true);
+    const { data: existingProfile } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("nickname", trimmedNickname)
+      .maybeSingle();
+    setNicknameChecking(false);
+
+    if (existingProfile && existingProfile.id !== userId) {
+      setNicknameError("이미 사용 중인 닉네임입니다");
+      return;
+    }
+
     const { error } = await supabase
       .from("profiles")
-      .update({ nickname: newNickname.trim(), nickname_changed_at: new Date().toISOString() })
+      .update({ nickname: trimmedNickname, nickname_changed_at: new Date().toISOString() })
       .eq("id", userId);
 
     if (error) {
@@ -57,7 +106,8 @@ export function ProfileClient({ nickname, balance, alivePosts, deadPosts, userId
       return;
     }
 
-    setCurrentNickname(newNickname.trim());
+    setCurrentNickname(trimmedNickname);
+    setNewNickname(trimmedNickname);
     setIsEditingNickname(false);
     setNicknameError(null);
     router.refresh();
@@ -113,24 +163,31 @@ export function ProfileClient({ nickname, balance, alivePosts, deadPosts, userId
               <input
                 type="text"
                 value={newNickname}
-                onChange={(e) => setNewNickname(e.target.value)}
+                onChange={(e) => {
+                  setNewNickname(e.target.value);
+                  setNicknameError(null);
+                }}
                 maxLength={20}
                 className="w-full p-3 rounded-xl bg-[var(--color-surface-elevated)] border border-[var(--color-border)] text-[var(--color-text-primary)] outline-none focus:border-[var(--color-primary)] text-[16px] mb-2"
                 autoFocus
               />
+              {nicknameChecking && !nicknameError && (
+                <p className="text-[13px] text-[var(--color-text-secondary)] mb-2">중복 확인 중...</p>
+              )}
               {nicknameError && (
                 <p className="text-[13px] text-[var(--color-danger)] mb-2">{nicknameError}</p>
               )}
               <div className="flex gap-2 mt-4">
                 <button
-                  onClick={() => { setIsEditingNickname(false); setNewNickname(currentNickname); setNicknameError(null); }}
+                  onClick={() => { setIsEditingNickname(false); setNewNickname(currentNickname); setNicknameError(null); setNicknameChecking(false); }}
                   className="flex-1 py-3 rounded-xl bg-[var(--color-surface-elevated)] text-[var(--color-text-secondary)] text-[14px] font-semibold"
                 >
                   취소
                 </button>
                 <button
                   onClick={handleSaveNickname}
-                  className="flex-1 py-3 rounded-xl bg-[var(--color-primary)] text-white text-[14px] font-semibold"
+                  disabled={nicknameChecking || Boolean(nicknameError)}
+                  className="flex-1 py-3 rounded-xl bg-[var(--color-primary)] text-white text-[14px] font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   저장
                 </button>

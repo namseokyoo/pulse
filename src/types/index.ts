@@ -79,6 +79,7 @@ export interface Database {
           consented_at?: string | null;
           created_at?: string;
         };
+        Relationships: [];
       };
       posts: {
         Row: {
@@ -129,6 +130,7 @@ export interface Database {
           is_hidden?: boolean;
           created_at?: string;
         };
+        Relationships: [];
       };
       game_rules: {
         Row: {
@@ -150,6 +152,7 @@ export interface Database {
           change_reason?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["game_rules"]["Insert"]>;
+        Relationships: [];
       };
       comments: {
         Row: {
@@ -182,6 +185,7 @@ export interface Database {
           is_hidden?: boolean;
           created_at?: string;
         };
+        Relationships: [];
       };
       admin_users: {
         Row: {
@@ -199,6 +203,7 @@ export interface Database {
           granted_at?: string;
           granted_by?: string | null;
         };
+        Relationships: [];
       };
       game_rules_history: {
         Row: {
@@ -222,6 +227,7 @@ export interface Database {
           changed_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["game_rules_history"]["Insert"]>;
+        Relationships: [];
       };
       vote_logs: {
         Row: {
@@ -251,6 +257,7 @@ export interface Database {
           vote_source?: "free" | "paid";
           created_at?: string;
         };
+        Relationships: [];
       };
       vote_balance_logs: {
         Row: {
@@ -276,6 +283,7 @@ export interface Database {
           created_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["vote_balance_logs"]["Insert"]>;
+        Relationships: [];
       };
       reports: {
         Row: {
@@ -299,8 +307,10 @@ export interface Database {
           created_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["reports"]["Insert"]>;
+        Relationships: [];
       };
     };
+    Views: {};
     Functions: {
       get_game_rules: {
         Args: Record<string, never>;
@@ -341,6 +351,10 @@ export interface Database {
           p_detail?: string;
         };
         Returns: { success: boolean; error?: string };
+      };
+      delete_account: {
+        Args: Record<string, never>;
+        Returns: undefined;
       };
       admin_get_stats: {
         Args: Record<string, never>;

@@ -46,8 +46,7 @@ export function PostDetailClient({
 }: PostDetailClientProps) {
   const router = useRouter();
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const supabase = createClient() as any;
+  const supabase = createClient();
 
   const [post, setPost] = useState(initialPost);
   const [confirmedPost, setConfirmedPost] = useState(initialPost);

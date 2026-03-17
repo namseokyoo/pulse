@@ -25,15 +25,11 @@ export default async function OnboardingPage() {
     redirect("/login");
   }
 
-  const profilesTable = supabase.from("profiles") as any;
-  const { data: profileData } = await profilesTable
+  const { data: profile } = await supabase
+    .from("profiles")
     .select("consented_at")
     .eq("id", user.id)
     .single();
-  const profile = profileData as Pick<
-    Database["public"]["Tables"]["profiles"]["Row"],
-    "consented_at"
-  > | null;
 
   if (profile?.consented_at) {
     redirect("/");

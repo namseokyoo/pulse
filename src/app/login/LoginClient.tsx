@@ -23,10 +23,12 @@ export function LoginClient({ gameRules }: LoginClientProps) {
   const handleGoogleLogin = async () => {
     setIsLoading(true);
     setError(null);
+    const searchParams = new URLSearchParams(window.location.search);
+    const next = searchParams.get("next") ?? "/";
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`,
       },
     });
     if (error) {
