@@ -49,7 +49,7 @@ export default function PurchaseClient({ userId }: { userId: string }) {
       alert("결제 준비 중입니다. 잠시 후 다시 시도해주세요.");
       return;
     }
-    const checkoutUrl = `https://${storeId}.lemonsqueezy.com/checkout/buy/${pkg.variantId}?checkout[custom][profile_id]=${userId}&checkout[custom][product_type]=paid_votes&checkout[custom][product_qty]=${pkg.qty}`;
+    const checkoutUrl = `https://${storeId}.lemonsqueezy.com/checkout/buy/${pkg.variantId}?checkout[custom][profile_id]=${userId}&checkout[custom][product_type]=paid_votes&checkout[custom][product_qty]=${pkg.qty}&checkout[success_url]=${encodeURIComponent("https://pulseup.cc/purchase/success")}`;
     window.open(checkoutUrl, "_blank");
   };
 
