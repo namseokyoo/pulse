@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { PostDetailClient } from "./PostDetailClient";
 import type { CommentType, Database, GameRules, PostType } from "@/types";
@@ -35,6 +36,56 @@ type GameRulesRow = Database["public"]["Tables"]["game_rules"]["Row"];
 
 interface PostDetailPageProps {
   params: Promise<{ id: string }>;
+}
+
+export async function generateMetadata({ params }: PostDetailPageProps): Promise<Metadata> {
+  const { id } = await params;
+  const supabase = await createClient();
+
+  const { data: post } = await supabase
+    .from("posts")
+    .select("title, content, is_dead, is_hidden, author_nickname, like_count, dislike_count")
+    .eq("id", id)
+    .single();
+
+  if (!post || post.is_hidden) {
+    return {
+      title: "글을 찾을 수 없습니다",
+    };
+  }
+
+  const contentPreview = post.content.length > 100
+    ? `${post.content.slice(0, 100)}...`
+    : post.content;
+
+  const statusLabel = post.is_dead ? "☠ 사라진 글" : "💓 살아있는 글";
+  const description = `${statusLabel} · ❤️ ${post.like_count} 💔 ${post.dislike_count} — ${contentPreview}`;
+
+  return {
+    title: post.title,
+    description,
+    openGraph: {
+      type: "article",
+      title: post.title,
+      description,
+      siteName: "PulseUp",
+      images: [
+        {
+          url: "/og-default.png",
+          width: 1200,
+          height: 630,
+          alt: post.title,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: post.title,
+      description,
+      images: ["/og-default.png"],
+    },
+    robots: post.is_dead ? { index: false, follow: false } : { index: true, follow: true },
+  };
 }
 
 export default async function PostDetailPage({ params }: PostDetailPageProps) {

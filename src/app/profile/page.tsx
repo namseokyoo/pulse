@@ -1,9 +1,15 @@
 import { createClient } from "@/lib/supabase/server";
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { ProfileClient } from "./ProfileClient";
 import type { PostType } from "@/types";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "내 프로필",
+  robots: { index: false, follow: false },
+};
 
 type ProfileRow = {
   nickname: string;

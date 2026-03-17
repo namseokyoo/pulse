@@ -1,7 +1,13 @@
 import { createClient } from "@/lib/supabase/server";
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { OnboardingClient } from "./OnboardingClient";
 import type { Database, GameRules } from "@/types";
+
+export const metadata: Metadata = {
+  title: "시작하기",
+  robots: { index: false, follow: false },
+};
 
 type GameRulesRow = Database["public"]["Tables"]["game_rules"]["Row"];
 
