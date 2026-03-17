@@ -95,6 +95,7 @@ export default async function ProfilePage() {
   return (
     <ProfileClient
       nickname={profile.nickname}
+      email={user.email ?? ""}
       freeVotes={freeVotes}
       paidVotes={paidVotes}
       alivePosts={((rawAlivePosts ?? []) as unknown as PostRow[]).map(mapPost)}

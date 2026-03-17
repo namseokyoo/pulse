@@ -6,18 +6,20 @@ import { useRouter } from "next/navigation";
 import { ProfileHeader } from "@/components/pulse/ProfileHeader";
 import { FilterTabs } from "@/components/pulse/FilterTabs";
 import { PostList } from "@/components/pulse/PostList";
-import { VoteInfoPanel } from "@/components/pulse/VoteInfoPanel";
 import { BottomNav } from "@/components/layout/BottomNav";
 import { createClient } from "@/lib/supabase/client";
 import type { PostType } from "@/types";
 
 const PROFILE_TABS = [
+  { value: "account", label: "계정" },
   { value: "alive", label: "살아있는 글" },
   { value: "dead", label: "죽은 글" },
+  { value: "orders", label: "구매내역" },
 ];
 
 interface ProfileClientProps {
   nickname: string;
+  email: string;
   freeVotes: number;
   paidVotes: number;
   alivePosts: PostType[];
@@ -25,10 +27,10 @@ interface ProfileClientProps {
   userId: string;
 }
 
-export function ProfileClient({ nickname, freeVotes, paidVotes, alivePosts, deadPosts, userId }: ProfileClientProps) {
+export function ProfileClient({ nickname, email, freeVotes, paidVotes, alivePosts, deadPosts, userId }: ProfileClientProps) {
   const router = useRouter();
   const supabase = createClient();
-  const [tab, setTab] = useState("alive");
+  const [tab, setTab] = useState("account");
   const [orders, setOrders] = useState<Array<{ id: string; product_qty: number; amount_krw: number; status: string; created_at: string }>>([]);
   const [ordersLoading, setOrdersLoading] = useState(false);
   const [isEditingNickname, setIsEditingNickname] = useState(false);
@@ -157,7 +159,7 @@ export function ProfileClient({ nickname, freeVotes, paidVotes, alivePosts, dead
   return (
     <div className="min-h-screen bg-[var(--color-background)]">
       <header className="sticky top-0 z-20 bg-[var(--color-background)]/90 backdrop-blur-sm border-b border-[var(--color-border)]">
-        <div className="mx-auto max-w-[680px] px-4 py-3 flex items-start justify-between gap-3">
+        <div className="mx-auto max-w-[680px] px-4 py-3 flex items-center">
           <Link href="/" className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-full bg-[var(--color-primary)] flex items-center justify-center" aria-hidden="true">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -166,9 +168,6 @@ export function ProfileClient({ nickname, freeVotes, paidVotes, alivePosts, dead
             </div>
             <span className="text-[18px] font-bold tracking-[0.05em] text-[var(--color-text-primary)]">PULSEUP</span>
           </Link>
-          <div className="w-64">
-            <VoteInfoPanel freeVotes={freeVotes} paidVotes={paidVotes} compact={true} />
-          </div>
         </div>
       </header>
 
@@ -262,71 +261,84 @@ export function ProfileClient({ nickname, freeVotes, paidVotes, alivePosts, dead
             value: t.value,
             label: t.value === "alive"
               ? `${t.label} (${alivePosts.length})`
-              : `${t.label} (${deadPosts.length})`,
+              : t.value === "dead"
+                ? `${t.label} (${deadPosts.length})`
+                : t.label,
           }))}
           selected={tab}
           onChange={setTab}
         />
 
         <div className="mt-4">
-          {tab === "alive" ? (
+          {tab === "account" && (
+            <div className="space-y-4 pt-2">
+              <div className="p-4 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)]">
+                <p className="text-[12px] text-[var(--color-text-muted)] mb-1">닉네임</p>
+                <p className="text-[16px] font-semibold text-[var(--color-text-primary)]">{currentNickname}</p>
+              </div>
+              {email && (
+                <div className="p-4 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)]">
+                  <p className="text-[12px] text-[var(--color-text-muted)] mb-1">이메일</p>
+                  <p className="text-[16px] text-[var(--color-text-primary)]">{email}</p>
+                </div>
+              )}
+              <button
+                onClick={handleSignOut}
+                className="w-full py-3 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)] text-[14px] font-semibold text-[var(--color-text-secondary)] hover:text-[var(--color-danger)] hover:border-[var(--color-danger)] transition-colors"
+              >
+                로그아웃
+              </button>
+              <button
+                onClick={() => setShowDeleteModal(true)}
+                className="w-full py-3 rounded-xl text-[13px] font-medium text-[var(--color-text-muted)] hover:text-[var(--color-danger)] transition-colors underline"
+              >
+                계정 삭제
+              </button>
+            </div>
+          )}
+          {tab === "alive" && (
             <PostList posts={alivePosts} type="alive" empty={alivePosts.length === 0} />
-          ) : (
+          )}
+          {tab === "dead" && (
             <PostList posts={deadPosts} type="dead" empty={deadPosts.length === 0} />
           )}
-        </div>
+          {tab === "orders" && (
+            <div className="pt-2">
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-[16px] font-semibold text-[var(--color-text-primary)]">구매 내역</h2>
+                <a href="/purchase" className="text-[13px] text-[var(--color-primary)] hover:opacity-80 transition-opacity">투표권 구매 →</a>
+              </div>
+              {ordersLoading ? (
+                <p className="text-[14px] text-[var(--color-text-muted)] py-4 text-center">불러오는 중...</p>
+              ) : orders.length === 0 ? (
+                <p className="text-[14px] text-[var(--color-text-muted)] py-4 text-center">구매 내역이 없습니다</p>
+              ) : (
+                <div className="space-y-2">
+                  {orders.map((order) => {
+                    const statusMap: Record<string, { label: string; color: string }> = {
+                      fulfilled: { label: "완료", color: "text-[var(--color-like)]" },
+                      refunded: { label: "환불", color: "text-[var(--color-danger)]" },
+                      created: { label: "처리중", color: "text-[var(--color-text-muted)]" },
+                      paid: { label: "처리중", color: "text-[var(--color-text-muted)]" },
+                      failed: { label: "실패", color: "text-[var(--color-danger)]" },
+                    };
+                    const s = statusMap[order.status] ?? { label: order.status, color: "text-[var(--color-text-muted)]" };
 
-        {/* 로그아웃 */}
-        <div className="mt-8 text-center space-y-3">
-          <button
-            onClick={handleSignOut}
-            className="text-[14px] text-[var(--color-text-muted)] hover:text-[var(--color-danger)] transition-colors"
-          >
-            로그아웃
-          </button>
-          <div>
-            <button
-              onClick={() => setShowDeleteModal(true)}
-              className="text-[13px] text-[var(--color-text-muted)] hover:text-[var(--color-danger)] transition-colors underline"
-            >
-              계정 삭제
-            </button>
-          </div>
-        </div>
-
-        <div className="mt-8">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-[16px] font-semibold text-[var(--color-text-primary)]">구매 내역</h2>
-            <a href="/purchase" className="text-[13px] text-[var(--color-primary)] hover:opacity-80 transition-opacity">투표권 구매 →</a>
-          </div>
-          {ordersLoading ? (
-            <p className="text-[14px] text-[var(--color-text-muted)] py-4 text-center">불러오는 중...</p>
-          ) : orders.length === 0 ? (
-            <p className="text-[14px] text-[var(--color-text-muted)] py-4 text-center">구매 내역이 없습니다</p>
-          ) : (
-            <div className="space-y-2">
-              {orders.map((order) => {
-                const statusMap: Record<string, { label: string; color: string }> = {
-                  fulfilled: { label: "완료", color: "text-[var(--color-like)]" },
-                  refunded: { label: "환불", color: "text-[var(--color-danger)]" },
-                  created: { label: "처리중", color: "text-[var(--color-text-muted)]" },
-                  paid: { label: "처리중", color: "text-[var(--color-text-muted)]" },
-                  failed: { label: "실패", color: "text-[var(--color-danger)]" },
-                };
-                const s = statusMap[order.status] ?? { label: order.status, color: "text-[var(--color-text-muted)]" };
-                return (
-                  <div key={order.id} className="flex items-center justify-between p-3 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)]">
-                    <div>
-                      <p className="text-[14px] font-semibold text-[var(--color-text-primary)]">투표권 {order.product_qty}개</p>
-                      <p className="text-[12px] text-[var(--color-text-muted)]">{new Date(order.created_at).toLocaleDateString("ko-KR")}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-[14px] font-semibold text-[var(--color-text-primary)]">{order.amount_krw.toLocaleString()}원</p>
-                      <p className={"text-[12px] font-medium " + s.color}>{s.label}</p>
-                    </div>
-                  </div>
-                );
-              })}
+                    return (
+                      <div key={order.id} className="flex items-center justify-between p-3 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)]">
+                        <div>
+                          <p className="text-[14px] font-semibold text-[var(--color-text-primary)]">투표권 {order.product_qty}개</p>
+                          <p className="text-[12px] text-[var(--color-text-muted)]">{new Date(order.created_at).toLocaleDateString("ko-KR")}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-[14px] font-semibold text-[var(--color-text-primary)]">{order.amount_krw.toLocaleString()}원</p>
+                          <p className={"text-[12px] font-medium " + s.color}>{s.label}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           )}
         </div>
