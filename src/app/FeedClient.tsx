@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { FilterTabs } from "@/components/pulse/FilterTabs";
 import { PostList } from "@/components/pulse/PostList";
 import { VoteBalance } from "@/components/pulse/VoteBalance";
@@ -25,20 +24,59 @@ interface FeedClientProps {
 
 export function FeedClient({ initialPosts, balance, gameRules, userId }: FeedClientProps) {
   const [sort, setSort] = useState<SortOption>("latest");
-  const router = useRouter();
+  const [posts, setPosts] = useState<PostType[]>(initialPosts);
 
   useEffect(() => {
-    const tick = () => {
-      if (!document.hidden) {
-        router.refresh();
+    const fetchFeed = async () => {
+      try {
+        const res = await fetch("/api/feed");
+        if (res.ok) {
+          const data = await res.json() as { posts: Array<{
+            id: string;
+            title: string;
+            content: string;
+            nickname: string;
+            vitality: number;
+            likes: number;
+            dislikes: number;
+            initialTtlMinutes: number;
+            expiresAt: string;
+            createdAt: string;
+            authorId: string;
+          }> };
+          const parsed = data.posts.map((p) => ({
+            ...p,
+            expiresAt: new Date(p.expiresAt),
+            createdAt: new Date(p.createdAt),
+          }));
+          setPosts(parsed);
+        }
+      } catch {
+        // 네트워크 오류 시 기존 상태 유지
       }
     };
-    const id = setInterval(tick, 60_000);
-    return () => clearInterval(id);
-  }, [router]);
+
+    const id = setInterval(() => {
+      if (!document.hidden) {
+        void fetchFeed();
+      }
+    }, 60_000);
+
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        void fetchFeed();
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      clearInterval(id);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, []);
 
   const sortedPosts = useMemo(() => {
-    const withVitality = initialPosts.map((p) => ({
+    const withVitality = posts.map((p) => ({
       ...p,
       vitality: calculateVitality(p.expiresAt, p.initialTtlMinutes ?? 360),
     }));
@@ -51,7 +89,7 @@ export function FeedClient({ initialPosts, balance, gameRules, userId }: FeedCli
       default:
         return withVitality;
     }
-  }, [initialPosts, sort]);
+  }, [posts, sort]);
 
   return (
     <div className="min-h-screen bg-[var(--color-background)]">

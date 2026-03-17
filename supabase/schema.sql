@@ -118,6 +118,9 @@ CREATE INDEX IF NOT EXISTS idx_comments_post_id ON comments(post_id, created_at 
 CREATE INDEX IF NOT EXISTS idx_vote_logs_user_post ON vote_logs(user_id, post_id);
 CREATE INDEX IF NOT EXISTS idx_vote_balance_logs_user ON vote_balance_logs(user_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_reports_target ON reports(target_type, target_id);
+CREATE INDEX IF NOT EXISTS idx_reports_status_created ON reports(status, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_posts_reported ON posts(reported_count DESC, created_at DESC) WHERE reported_count > 0;
+CREATE INDEX IF NOT EXISTS idx_vote_logs_created ON vote_logs(created_at DESC);
 
 -- ============================================================
 -- State Transition Function (alive → dead)
