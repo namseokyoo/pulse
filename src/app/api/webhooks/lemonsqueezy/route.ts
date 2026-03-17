@@ -4,10 +4,20 @@ import crypto from "crypto";
 
 export async function POST(request: NextRequest) {
   const rawBody = await request.text();
-  const signature = request.headers.get("x-signature");
-  const webhookSecret = process.env.LEMONSQUEEZY_WEBHOOK_SECRET;
+  const webhookSecret = process.env.LEMONSQUEEZY_WEBHOOK_SECRET?.trim();
+
+  // LS 서명 헤더 (여러 후보 체크)
+  const signature =
+    request.headers.get("x-signature") ||
+    request.headers.get("X-Signature") ||
+    request.headers.get("x-signature-256");
 
   if (!webhookSecret || !signature) {
+    console.error("[LS Webhook] Missing secret or signature", {
+      hasSecret: !!webhookSecret,
+      hasSignature: !!signature,
+      headers: Object.fromEntries(request.headers.entries()),
+    });
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
@@ -15,7 +25,17 @@ export async function POST(request: NextRequest) {
   const hmac = crypto.createHmac("sha256", webhookSecret);
   const digest = hmac.update(rawBody).digest("hex");
 
-  if (!crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(digest))) {
+  // 길이 불일치 체크
+  const sigBuffer = Buffer.from(signature);
+  const digestBuffer = Buffer.from(digest);
+
+  if (sigBuffer.length !== digestBuffer.length || !crypto.timingSafeEqual(sigBuffer, digestBuffer)) {
+    console.error("[LS Webhook] Signature mismatch", {
+      signaturePrefix: signature.substring(0, 8) + "...",
+      digestPrefix: digest.substring(0, 8) + "...",
+      signatureLength: signature.length,
+      digestLength: digest.length,
+    });
     return NextResponse.json({ error: "invalid_signature" }, { status: 401 });
   }
 
