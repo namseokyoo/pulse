@@ -53,8 +53,6 @@ export function FeedClient({ initialPosts, balance, gameRules, userId }: FeedCli
     }
   }, [initialPosts, sort]);
 
-  const alivePosts = sortedPosts.filter((p) => p.vitality > 0);
-
   return (
     <div className="min-h-screen bg-[var(--color-background)]">
       {/* 상단 헤더 */}
@@ -106,7 +104,7 @@ export function FeedClient({ initialPosts, balance, gameRules, userId }: FeedCli
         </div>
 
         {/* 글 목록 */}
-        <PostList posts={alivePosts} type="alive" empty={alivePosts.length === 0} />
+        <PostList posts={sortedPosts} type="alive" empty={sortedPosts.length === 0} />
       </main>
 
       {/* 하단 네비 */}

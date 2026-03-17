@@ -50,8 +50,10 @@ export function PostDetailClient({
   const supabase = createClient() as any;
 
   const [post, setPost] = useState(initialPost);
+  const [confirmedPost, setConfirmedPost] = useState(initialPost);
   const [comments, setComments] = useState(initialComments);
   const [balance, setBalance] = useState(initialBalance);
+  const [confirmedBalance, setConfirmedBalance] = useState(initialBalance);
   const [commentText, setCommentText] = useState("");
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
   const [reportTarget, setReportTarget] = useState<string | null>(null);
@@ -88,24 +90,28 @@ export function PostDetailClient({
 
     if (error || !data?.success) {
       // Rollback
-      setPost(initialPost);
-      setBalance(initialBalance);
+      setPost(confirmedPost);
+      setBalance(confirmedBalance);
       setVoteError(data?.error === "insufficient_votes" ? "투표권이 부족합니다." : "투표에 실패했습니다.");
     } else {
-      setPost((prev) => ({
-        ...prev,
-        likes: data.like_count ?? prev.likes,
-        dislikes: data.dislike_count ?? prev.dislikes,
-        expiresAt: data.expires_at ? new Date(data.expires_at) : prev.expiresAt,
-        isDead: data.is_dead ?? prev.isDead,
-      }));
-      setBalance((data.free_votes ?? 0) + (data.paid_votes ?? 0));
+      const newPost: typeof post = {
+        ...post,
+        likes: data.like_count ?? post.likes,
+        dislikes: data.dislike_count ?? post.dislikes,
+        expiresAt: data.expires_at ? new Date(data.expires_at) : post.expiresAt,
+        isDead: data.is_dead ?? post.isDead,
+      };
+      const newBalance = (data.free_votes ?? 0) + (data.paid_votes ?? 0);
+      setPost(newPost);
+      setBalance(newBalance);
+      setConfirmedPost(newPost);
+      setConfirmedBalance(newBalance);
 
       if (data.is_dead) {
         router.refresh();
       }
     }
-  }, [userId, balance, post.id, initialPost, initialBalance, supabase, router]);
+  }, [userId, balance, post.id, confirmedPost, confirmedBalance, supabase, router]);
 
   const vitality = calculateVitality(post.expiresAt, post.initialTtlMinutes ?? 360);
 
