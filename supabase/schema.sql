@@ -281,9 +281,6 @@ CREATE POLICY "posts_select_alive" ON posts
 CREATE POLICY "posts_insert_own" ON posts
   FOR INSERT WITH CHECK (auth.uid() = author_id);
 
-CREATE POLICY "posts_update_own" ON posts
-  FOR UPDATE USING (auth.uid() = author_id);
-
 -- Comments: 살아있는 글의 댓글 공개
 CREATE POLICY "comments_select_alive_posts" ON comments
   FOR SELECT USING (
@@ -452,8 +449,20 @@ DECLARE
   v_inserted INTEGER := 0;
   v_threshold INTEGER;
 BEGIN
-  SELECT COALESCE(report_hide_threshold, 10) INTO v_threshold
-  FROM game_rules WHERE id = TRUE;
+  -- P0-4: auth.uid() 교차검증 (대리 신고 방지)
+  IF p_reporter_id <> auth.uid() THEN
+    RETURN jsonb_build_object('success', FALSE, 'error', 'unauthorized');
+  END IF;
+
+  -- 자기 글 셀프 신고 방지
+  IF p_target_type = 'post' THEN
+    IF EXISTS (SELECT 1 FROM posts WHERE id = p_target_id AND author_id = p_reporter_id) THEN
+      RETURN jsonb_build_object('success', FALSE, 'error', 'self_report_not_allowed');
+    END IF;
+  END IF;
+
+  -- game_rules에서 임계치 로드
+  SELECT COALESCE(report_hide_threshold, 10) INTO v_threshold FROM game_rules WHERE id = TRUE;
 
   -- C-2: 원자적 INSERT (TOCTOU 레이스 방지) — 중복이면 아무것도 하지 않음
   INSERT INTO reports (reporter_id, target_type, target_id, reason, detail)

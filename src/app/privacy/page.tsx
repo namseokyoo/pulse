@@ -24,7 +24,7 @@ export default function PrivacyPage() {
             </p>
             <ul className="text-[15px] leading-7 space-y-2 list-disc list-inside">
               <li>이메일 주소 (Google OAuth를 통해 수집)</li>
-              <li>닉네임 (서비스 가입 시 직접 입력)</li>
+              <li>닉네임 (서비스 가입 시 자동 생성, 이후 변경 가능)</li>
               <li>서비스 이용 기록 (게시물, 댓글, 투표 내역)</li>
             </ul>
           </section>
@@ -78,6 +78,11 @@ export default function PrivacyPage() {
               <li>Supabase — 데이터베이스 및 인증 서비스 (미국 소재)</li>
               <li>Vercel — 웹 호스팅 서비스 (미국 소재)</li>
             </ul>
+            <p className="text-[15px] leading-7 mt-3">
+              상기 수탁업체는 미국에 소재하며, 개인정보가 해외로 이전되어 처리됩니다.
+              이전되는 항목은 이메일 주소, 닉네임, 서비스 이용 기록이며,
+              각 업체의 보안 정책에 따라 안전하게 관리됩니다.
+            </p>
             <p className="text-[15px] leading-7 mt-3">
               각 수탁업체의 개인정보처리방침이 함께 적용됩니다.
             </p>
