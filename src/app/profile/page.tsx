@@ -48,6 +48,7 @@ export default async function ProfilePage() {
       .eq("author_id", user.id)
       .eq("is_dead", false)
       .eq("is_hidden", false)
+      .eq("is_deleted", false)
       .gt("expires_at", new Date().toISOString())
       .order("created_at", { ascending: false }),
     supabase

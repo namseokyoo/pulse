@@ -17,6 +17,7 @@ type PostRow = {
   author_id: string;
   is_dead: boolean;
   is_hidden: boolean;
+  edited_at: string | null;
   author_nickname: string;
 };
 
@@ -24,6 +25,8 @@ type CommentRow = {
   id: string;
   content: string;
   created_at: string;
+  edited_at: string | null;
+  is_deleted: boolean;
   author_id: string;
   author_nickname: string;
 };
@@ -48,19 +51,19 @@ export default async function PostDetailPage({ params }: PostDetailPageProps) {
     supabase
       .from("posts")
       .select(`
-        id, title, content, like_count, dislike_count, initial_ttl_minutes, expires_at, created_at, author_id, is_dead, is_hidden,
-        author_nickname
+        id, title, content, like_count, dislike_count, initial_ttl_minutes, expires_at, created_at, author_id, is_dead, is_hidden, edited_at, author_nickname
       `)
       .eq("id", id)
       .single(),
     supabase
       .from("comments")
       .select(`
-        id, content, created_at, author_id,
+        id, content, created_at, edited_at, is_deleted, author_id,
         author_nickname
       `)
       .eq("post_id", id)
       .is("parent_id", null)
+      .eq("is_deleted", false)
       .order("created_at", { ascending: true }),
     supabase
       .from("game_rules")
@@ -103,6 +106,7 @@ export default async function PostDetailPage({ params }: PostDetailPageProps) {
     expiresAt: new Date(postData.expires_at),
     createdAt: new Date(postData.created_at),
     isDead: postData.is_dead,
+    editedAt: postData.edited_at ? new Date(postData.edited_at) : undefined,
     authorId: postData.author_id,
   };
 
@@ -111,6 +115,8 @@ export default async function PostDetailPage({ params }: PostDetailPageProps) {
     nickname: c.author_nickname,
     content: c.content,
     createdAt: new Date(c.created_at),
+    editedAt: c.edited_at ? new Date(c.edited_at) : undefined,
+    isDeleted: c.is_deleted,
     authorId: c.author_id,
   }));
 

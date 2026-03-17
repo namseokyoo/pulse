@@ -18,6 +18,8 @@ export interface PostType {
   isDead?: boolean;
   authorId?: string;
   initialTtlMinutes?: number; // game_rules.initial_ttl_minutes 스냅샷
+  editedAt?: Date;
+  isDeleted?: boolean;
 }
 
 export interface CommentType {
@@ -26,6 +28,8 @@ export interface CommentType {
   content: string;
   createdAt: Date;
   authorId?: string;
+  editedAt?: Date;
+  isDeleted?: boolean;
 }
 
 export interface FilterOption {
@@ -96,6 +100,9 @@ export interface Database {
           dead_at: string | null;
           reported_count: number;
           is_hidden: boolean;
+          edited_at: string | null;
+          is_deleted: boolean;
+          deleted_at: string | null;
           created_at: string;
         };
         Insert: {
@@ -164,6 +171,9 @@ export interface Database {
           author_id: string;
           author_nickname: string;
           content: string;
+          edited_at: string | null;
+          is_deleted: boolean;
+          deleted_at: string | null;
           is_hidden: boolean;
           created_at: string;
         };
@@ -174,6 +184,9 @@ export interface Database {
           author_id: string;
           author_nickname?: string;
           content: string;
+          edited_at?: string | null;
+          is_deleted?: boolean;
+          deleted_at?: string | null;
           is_hidden?: boolean;
           created_at?: string;
         };
@@ -184,6 +197,9 @@ export interface Database {
           author_id?: string;
           author_nickname?: string;
           content?: string;
+          edited_at?: string | null;
+          is_deleted?: boolean;
+          deleted_at?: string | null;
           is_hidden?: boolean;
           created_at?: string;
         };
@@ -355,6 +371,26 @@ export interface Database {
           p_reason: "abuse" | "adult" | "spam" | "other";
           p_detail?: string;
         };
+        Returns: { success: boolean; error?: string };
+      };
+      edit_post: {
+        Args: {
+          p_post_id: string;
+          p_title: string;
+          p_content: string;
+        };
+        Returns: { success: boolean; error?: string };
+      };
+      delete_post: {
+        Args: { p_post_id: string };
+        Returns: { success: boolean; error?: string };
+      };
+      edit_comment: {
+        Args: { p_comment_id: string; p_content: string };
+        Returns: { success: boolean; error?: string };
+      };
+      delete_comment: {
+        Args: { p_comment_id: string };
         Returns: { success: boolean; error?: string };
       };
       delete_account: {

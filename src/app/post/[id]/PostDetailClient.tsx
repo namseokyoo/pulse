@@ -1,6 +1,6 @@
 "use client";
 
-import { ThumbsDown, ThumbsUp } from "lucide-react";
+import { ThumbsDown, ThumbsUp, MoreHorizontal } from "lucide-react";
 import { useState, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -59,6 +59,14 @@ export function PostDetailClient({
   const [voteError, setVoteError] = useState<string | null>(null);
   const [commentError, setCommentError] = useState<string | null>(null);
   const [pendingVote, setPendingVote] = useState<{ type: "like" | "dislike" } | null>(null);
+  const [isEditingPost, setIsEditingPost] = useState(false);
+  const [editTitle, setEditTitle] = useState(post.title);
+  const [editContent, setEditContent] = useState(post.content);
+  const [isSavingPost, setIsSavingPost] = useState(false);
+  const [isDeletingPost, setIsDeletingPost] = useState(false);
+  const [showDeletePostConfirm, setShowDeletePostConfirm] = useState(false);
+  const [showPostMenu, setShowPostMenu] = useState(false);
+  const [postActionError, setPostActionError] = useState<string | null>(null);
 
   const handleVote = useCallback(async (type: "like" | "dislike", amount: number) => {
     if (!userId) {
@@ -70,7 +78,6 @@ export function PostDetailClient({
       return;
     }
 
-    // Optimistic UI
     setPost((prev) => ({
       ...prev,
       likes: type === "like" ? prev.likes + amount : prev.likes,
@@ -79,7 +86,6 @@ export function PostDetailClient({
     setBalance((b) => b - amount);
     setVoteError(null);
 
-    // 서버 검증
     const { data, error } = await supabase.rpc("cast_vote", {
       p_user_id: userId,
       p_post_id: post.id,
@@ -88,7 +94,6 @@ export function PostDetailClient({
     }) as { data: CastVoteResult | null; error: unknown };
 
     if (error || !data?.success) {
-      // Rollback
       setPost(confirmedPost);
       setBalance(confirmedBalance);
       setVoteError(data?.error === "insufficient_votes" ? "투표권이 부족합니다." : "투표에 실패했습니다.");
@@ -139,6 +144,59 @@ export function PostDetailClient({
     );
   }
 
+  const handleEditPost = async () => {
+    if (!editTitle.trim() || !editContent.trim()) return;
+    setIsSavingPost(true);
+    setPostActionError(null);
+    const { data } = await supabase.rpc("edit_post", {
+      p_post_id: post.id,
+      p_title: editTitle.trim(),
+      p_content: editContent.trim(),
+    }) as { data: { success: boolean; error?: string } | null };
+    setIsSavingPost(false);
+    if (data?.success) {
+      setPost((prev) => ({ ...prev, title: editTitle.trim(), content: editContent.trim(), editedAt: new Date() }));
+      setConfirmedPost((prev) => ({ ...prev, title: editTitle.trim(), content: editContent.trim(), editedAt: new Date() }));
+      setIsEditingPost(false);
+    } else {
+      setPostActionError(data?.error === "pending_report_exists" ? "신고 처리 중에는 수정할 수 없습니다." : "수정에 실패했습니다.");
+    }
+  };
+
+  const handleDeletePost = async () => {
+    setIsDeletingPost(true);
+    setPostActionError(null);
+    const { data } = await supabase.rpc("delete_post", {
+      p_post_id: post.id,
+    }) as { data: { success: boolean; error?: string } | null };
+    setIsDeletingPost(false);
+    if (data?.success) {
+      router.push("/");
+    } else {
+      setPostActionError(data?.error === "pending_report_exists" ? "신고 처리 중에는 삭제할 수 없습니다." : "삭제에 실패했습니다.");
+      setShowDeletePostConfirm(false);
+    }
+  };
+
+  const handleEditComment = async (commentId: string, newContent: string) => {
+    const { data } = await supabase.rpc("edit_comment", {
+      p_comment_id: commentId,
+      p_content: newContent,
+    }) as { data: { success: boolean; error?: string } | null };
+    if (data?.success) {
+      setComments((prev) => prev.map((c) => (c.id === commentId ? { ...c, content: newContent, editedAt: new Date() } : c)));
+    }
+  };
+
+  const handleDeleteComment = async (commentId: string) => {
+    const { data } = await supabase.rpc("delete_comment", {
+      p_comment_id: commentId,
+    }) as { data: { success: boolean; error?: string } | null };
+    if (data?.success) {
+      setComments((prev) => prev.map((c) => (c.id === commentId ? { ...c, content: "[삭제된 댓글]", isDeleted: true } : c)));
+    }
+  };
+
   const handleSubmitComment = async () => {
     if (!userId || !commentText.trim() || isSubmittingComment) return;
     setIsSubmittingComment(true);
@@ -186,7 +244,6 @@ export function PostDetailClient({
 
   return (
     <div className="min-h-screen bg-[var(--color-background)]">
-      {/* 헤더 */}
       <header className="sticky top-0 z-20 bg-[var(--color-background)]/90 backdrop-blur-sm border-b border-[var(--color-border)]">
         <div className="mx-auto max-w-[680px] px-4 h-14 flex items-center justify-between">
           <button
@@ -211,7 +268,6 @@ export function PostDetailClient({
       </header>
 
       <main className="mx-auto max-w-[680px] px-4 pb-24">
-        {/* 생명력 카드 */}
         <div className="mt-4 mb-6 p-4 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)]">
           <p className="text-[13px] text-[var(--color-text-muted)] mb-2">생명력</p>
           <div className="mb-3">
@@ -220,22 +276,126 @@ export function PostDetailClient({
           <VitalityTimer expiresAt={post.expiresAt} size="lg" />
         </div>
 
-        {/* 제목 */}
-        <h1 className="text-[24px] font-bold leading-[1.3] text-[var(--color-text-primary)] mb-4">
-          {post.title}
-        </h1>
+        {/* 제목 + 본문 + 수정/삭제 메뉴 */}
+        <div className="mb-8">
+          {/* 제목 행 */}
+          <div className="flex items-start justify-between gap-2 mb-4">
+            {isEditingPost ? (
+              <input
+                type="text"
+                value={editTitle}
+                onChange={(e) => setEditTitle(e.target.value)}
+                maxLength={100}
+                className="flex-1 px-3 py-2 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)] text-[22px] font-bold text-[var(--color-text-primary)] outline-none focus:border-[var(--color-primary)]"
+              />
+            ) : (
+              <h1 className="flex-1 text-[24px] font-bold leading-[1.3] text-[var(--color-text-primary)]">
+                {post.title}
+                {post.editedAt && (
+                  <span className="ml-2 text-[13px] font-normal text-[var(--color-text-muted)]">(수정됨)</span>
+                )}
+              </h1>
+            )}
+            {userId === post.authorId && !post.isDead && !isEditingPost && (
+              <div className="relative">
+                <button
+                  onClick={() => setShowPostMenu((prev) => !prev)}
+                  className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-md text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)] transition-colors"
+                  aria-label="더보기"
+                >
+                  <MoreHorizontal size={20} />
+                </button>
+                {showPostMenu && (
+                  <>
+                    <div className="fixed inset-0 z-10" onClick={() => setShowPostMenu(false)} aria-hidden="true" />
+                    <div className="absolute right-0 top-10 z-20 w-28 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)] shadow-[var(--shadow-modal)] overflow-hidden">
+                      <button
+                        onClick={() => { setIsEditingPost(true); setEditTitle(post.title); setEditContent(post.content); setShowPostMenu(false); }}
+                        className="w-full px-4 py-3 text-left text-[14px] text-[var(--color-text-primary)] hover:bg-[var(--color-surface-elevated)] transition-colors"
+                      >
+                        수정
+                      </button>
+                      <button
+                        onClick={() => { setShowDeletePostConfirm(true); setShowPostMenu(false); }}
+                        className="w-full px-4 py-3 text-left text-[14px] text-[var(--color-danger)] hover:bg-[var(--color-surface-elevated)] transition-colors"
+                      >
+                        삭제
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
 
-        {/* 본문 */}
-        <p className="text-base leading-7 text-[var(--color-text-secondary)] mb-8 whitespace-pre-wrap">
-          {post.content}
-        </p>
+          {isEditingPost ? (
+            <div className="space-y-3">
+              <textarea
+                value={editContent}
+                onChange={(e) => setEditContent(e.target.value)}
+                maxLength={500}
+                rows={6}
+                className="w-full p-3 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)] text-base text-[var(--color-text-primary)] outline-none focus:border-[var(--color-primary)] resize-none"
+              />
+              {postActionError && (
+                <p className="text-[13px] text-[var(--color-danger)]">{postActionError}</p>
+              )}
+              <div className="flex gap-3">
+                <button
+                  onClick={handleEditPost}
+                  disabled={isSavingPost || !editTitle.trim() || !editContent.trim()}
+                  className="px-5 py-2 rounded-xl bg-[var(--color-primary)] text-white text-[14px] font-semibold disabled:opacity-50"
+                >
+                  {isSavingPost ? "저장 중..." : "저장"}
+                </button>
+                <button
+                  onClick={() => { setIsEditingPost(false); setPostActionError(null); }}
+                  disabled={isSavingPost}
+                  className="px-5 py-2 rounded-xl border border-[var(--color-border)] text-[14px] text-[var(--color-text-secondary)]"
+                >
+                  취소
+                </button>
+              </div>
+            </div>
+          ) : (
+            <>
+              <p className="text-base leading-7 text-[var(--color-text-secondary)] whitespace-pre-wrap">
+                {post.content}
+              </p>
+              {postActionError && (
+                <p className="text-[13px] text-[var(--color-danger)] mt-2">{postActionError}</p>
+              )}
+            </>
+          )}
 
-        {/* 투표 에러 */}
+          {showDeletePostConfirm && (
+            <div className="mt-4 p-4 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)]">
+              <p className="text-[14px] text-[var(--color-text-secondary)] mb-1">정말 삭제하시겠습니까?</p>
+              <p className="text-[13px] text-[var(--color-text-muted)] mb-3">이 작업은 취소할 수 없습니다.</p>
+              <div className="flex gap-3">
+                <button
+                  onClick={handleDeletePost}
+                  disabled={isDeletingPost}
+                  className="px-5 py-2 rounded-xl bg-[var(--color-danger)] text-white text-[14px] font-semibold disabled:opacity-50"
+                >
+                  {isDeletingPost ? "삭제 중..." : "삭제"}
+                </button>
+                <button
+                  onClick={() => setShowDeletePostConfirm(false)}
+                  disabled={isDeletingPost}
+                  className="px-5 py-2 rounded-xl border border-[var(--color-border)] text-[14px] text-[var(--color-text-secondary)]"
+                >
+                  취소
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
         {voteError && (
           <p className="text-[13px] text-[var(--color-danger)] mb-4">{voteError}</p>
         )}
 
-        {/* 투표 버튼 */}
         {!post.isDead && (
           <div className="mb-6 space-y-3">
             <div className="flex gap-4 justify-center">
@@ -272,7 +432,6 @@ export function PostDetailClient({
           </div>
         )}
 
-        {/* 다시 작성하기 버튼 */}
         {post.isDead && userId === post.authorId && (
           <div className="mb-6">
             <button
@@ -284,7 +443,6 @@ export function PostDetailClient({
           </div>
         )}
 
-        {/* 신고 버튼 */}
         <div className="mb-8 flex justify-end">
           <button
             onClick={() => setReportTarget(post.id)}
@@ -294,10 +452,8 @@ export function PostDetailClient({
           </button>
         </div>
 
-        {/* 구분선 */}
         <div className="border-t border-[var(--color-border)] mb-6" />
 
-        {/* 댓글 섹션 */}
         <section>
           <h2 className="text-[16px] font-semibold text-[var(--color-text-primary)] mb-4">
             댓글 {comments.length}개
@@ -310,6 +466,9 @@ export function PostDetailClient({
                   key={comment.id}
                   comment={comment}
                   isLast={i === comments.length - 1}
+                  userId={userId}
+                  onEdit={handleEditComment}
+                  onDelete={handleDeleteComment}
                 />
               ))}
             </div>
@@ -319,7 +478,6 @@ export function PostDetailClient({
             </p>
           )}
 
-          {/* 댓글 입력 */}
           {!post.isDead && (
             <>
               {userId ? (
@@ -364,7 +522,6 @@ export function PostDetailClient({
         </section>
       </main>
 
-      {/* 투표 확인 모달 */}
       {pendingVote && (
         <>
           <div
@@ -418,7 +575,6 @@ export function PostDetailClient({
         </>
       )}
 
-      {/* 신고 모달 */}
       <ReportModal
         isOpen={Boolean(reportTarget)}
         postId={reportTarget ?? ""}
