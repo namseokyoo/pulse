@@ -16,7 +16,7 @@ ALTER TABLE comments ADD COLUMN IF NOT EXISTS is_hidden BOOLEAN NOT NULL DEFAULT
 
 -- ---- 수정 이력 테이블 ----
 CREATE TABLE IF NOT EXISTS post_edits (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   post_id UUID NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
   old_title TEXT NOT NULL,
   old_content TEXT NOT NULL,
@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS post_edits (
 );
 
 CREATE TABLE IF NOT EXISTS comment_edits (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   comment_id UUID NOT NULL REFERENCES comments(id) ON DELETE CASCADE,
   old_content TEXT NOT NULL,
   edited_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
