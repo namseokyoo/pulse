@@ -139,6 +139,7 @@ export interface Database {
           daily_free_votes: number;
           reset_eligibility_hours: number;
           initial_ttl_minutes: number;
+          report_hide_threshold: number;
           updated_at: string;
           change_reason: string | null;
         };
@@ -148,6 +149,7 @@ export interface Database {
           daily_free_votes?: number;
           reset_eligibility_hours?: number;
           initial_ttl_minutes?: number;
+          report_hide_threshold?: number;
           updated_at?: string;
           change_reason?: string | null;
         };
@@ -212,6 +214,7 @@ export interface Database {
           daily_free_votes: number;
           reset_eligibility_hours: number;
           initial_ttl_minutes: number;
+          report_hide_threshold: number | null;
           change_reason: string | null;
           changed_by: string | null;
           changed_at: string;
@@ -222,6 +225,7 @@ export interface Database {
           daily_free_votes: number;
           reset_eligibility_hours: number;
           initial_ttl_minutes: number;
+          report_hide_threshold?: number | null;
           change_reason?: string | null;
           changed_by?: string | null;
           changed_at?: string;
@@ -320,6 +324,7 @@ export interface Database {
           daily_free_votes: number;
           reset_eligibility_hours: number;
           initial_ttl_minutes: number;
+          report_hide_threshold: number;
           updated_at: string;
           change_reason: string | null;
         };
@@ -373,6 +378,7 @@ export interface Database {
           p_daily_free_votes: number;
           p_reset_eligibility_hours: number;
           p_initial_ttl_minutes: number;
+          p_report_hide_threshold: number;
           p_change_reason: string;
         };
         Returns: { success: boolean; error?: string };
@@ -446,6 +452,7 @@ export interface GameRulesHistory {
   daily_free_votes: number;
   reset_eligibility_hours: number;
   initial_ttl_minutes: number;
+  report_hide_threshold: number | null;
   change_reason: string | null;
   changed_by: string | null;
   changed_at: string;

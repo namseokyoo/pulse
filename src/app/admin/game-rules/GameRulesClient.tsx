@@ -11,6 +11,7 @@ type GameRulesForm = {
   daily_free_votes: number;
   reset_eligibility_hours: number;
   initial_ttl_minutes: number;
+  report_hide_threshold: number;
   change_reason: string;
   updated_at: string;
 };
@@ -40,6 +41,7 @@ export function GameRulesClient({ rules, history }: Props) {
     daily_free_votes: rules?.daily_free_votes ?? 10,
     reset_eligibility_hours: rules?.reset_eligibility_hours ?? 20,
     initial_ttl_minutes: rules?.initial_ttl_minutes ?? 360,
+    report_hide_threshold: rules?.report_hide_threshold ?? 10,
     change_reason: "",
     updated_at: rules?.updated_at ?? "",
   });
@@ -67,6 +69,7 @@ export function GameRulesClient({ rules, history }: Props) {
       p_daily_free_votes: form.daily_free_votes,
       p_reset_eligibility_hours: form.reset_eligibility_hours,
       p_initial_ttl_minutes: form.initial_ttl_minutes,
+      p_report_hide_threshold: form.report_hide_threshold,
       p_change_reason: form.change_reason,
     });
 
@@ -99,6 +102,11 @@ export function GameRulesClient({ rules, history }: Props) {
       min: 1,
     },
     { key: "initial_ttl_minutes" as const, label: "초기 TTL (분)", min: 1 },
+    {
+      key: "report_hide_threshold" as const,
+      label: "신고 자동숨김 기준 (건)",
+      min: 1,
+    },
   ];
 
   return (
@@ -185,7 +193,8 @@ export function GameRulesClient({ rules, history }: Props) {
                 </div>
                 <div className="text-[#a0a0a0]">
                   TTL {item.initial_ttl_minutes}분 / 투표권 {item.daily_free_votes}
-                  개 / 투표당 {item.vote_time_change_minutes}분
+                  개 / 투표당 {item.vote_time_change_minutes}분 / 신고기준{" "}
+                  {item.report_hide_threshold ?? "-"}건
                 </div>
               </div>
             ))}

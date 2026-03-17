@@ -98,6 +98,7 @@ CREATE TABLE IF NOT EXISTS public.game_rules (
   daily_free_votes INTEGER NOT NULL DEFAULT 10 CHECK (daily_free_votes >= 0),
   reset_eligibility_hours INTEGER NOT NULL DEFAULT 20 CHECK (reset_eligibility_hours > 0),
   initial_ttl_minutes INTEGER NOT NULL DEFAULT 360 CHECK (initial_ttl_minutes > 0),
+  report_hide_threshold INTEGER NOT NULL DEFAULT 10 CHECK (report_hide_threshold >= 1),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   change_reason TEXT
 );
@@ -435,7 +436,7 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 
 -- ============================================================
--- Function: 신고 처리 (5건 이상 자동 숨김)
+-- Function: 신고 처리 (game_rules 기준 자동 숨김)
 -- ============================================================
 
 CREATE OR REPLACE FUNCTION submit_report(
@@ -449,7 +450,11 @@ RETURNS JSONB AS $$
 DECLARE
   v_report_count INTEGER;
   v_inserted INTEGER := 0;
+  v_threshold INTEGER;
 BEGIN
+  SELECT COALESCE(report_hide_threshold, 10) INTO v_threshold
+  FROM game_rules WHERE id = TRUE;
+
   -- C-2: 원자적 INSERT (TOCTOU 레이스 방지) — 중복이면 아무것도 하지 않음
   INSERT INTO reports (reporter_id, target_type, target_id, reason, detail)
   VALUES (p_reporter_id, p_target_type, p_target_id, p_reason, p_detail)
@@ -469,8 +474,8 @@ BEGIN
     WHERE id = p_target_id
     RETURNING reported_count INTO v_report_count;
 
-    -- 5건 이상 자동 숨김
-    IF v_report_count >= 5 THEN
+    -- game_rules 기준 자동 숨김
+    IF v_report_count >= v_threshold THEN
       UPDATE posts SET is_hidden = TRUE WHERE id = p_target_id;
     END IF;
   END IF;
@@ -544,6 +549,7 @@ CREATE TABLE IF NOT EXISTS game_rules_history (
   daily_free_votes INTEGER NOT NULL,
   reset_eligibility_hours INTEGER NOT NULL,
   initial_ttl_minutes INTEGER NOT NULL,
+  report_hide_threshold INTEGER,
   change_reason TEXT,
   changed_by UUID REFERENCES auth.users(id),
   changed_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -586,6 +592,7 @@ CREATE OR REPLACE FUNCTION admin_update_game_rules(
   p_daily_free_votes INTEGER,
   p_reset_eligibility_hours INTEGER,
   p_initial_ttl_minutes INTEGER,
+  p_report_hide_threshold INTEGER,
   p_change_reason TEXT
 )
 RETURNS JSONB AS $$
@@ -602,11 +609,12 @@ BEGIN
   -- 이력 저장
   INSERT INTO game_rules_history (
     vote_time_change_minutes, daily_free_votes, reset_eligibility_hours,
-    initial_ttl_minutes, change_reason, changed_by
+    initial_ttl_minutes, report_hide_threshold, change_reason, changed_by
   )
   VALUES (
     v_old.vote_time_change_minutes, v_old.daily_free_votes,
     v_old.reset_eligibility_hours, v_old.initial_ttl_minutes,
+    v_old.report_hide_threshold,
     p_change_reason, auth.uid()
   );
 
@@ -616,6 +624,7 @@ BEGIN
       daily_free_votes = p_daily_free_votes,
       reset_eligibility_hours = p_reset_eligibility_hours,
       initial_ttl_minutes = p_initial_ttl_minutes,
+      report_hide_threshold = p_report_hide_threshold,
       change_reason = p_change_reason,
       updated_at = NOW()
   WHERE id = TRUE;
@@ -984,4 +993,3 @@ DROP TRIGGER IF EXISTS trg_enforce_nickname_limit ON profiles;
 CREATE TRIGGER trg_enforce_nickname_limit
   BEFORE UPDATE ON profiles
   FOR EACH ROW EXECUTE FUNCTION enforce_nickname_change_limit();
-
