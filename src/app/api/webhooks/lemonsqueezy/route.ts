@@ -89,7 +89,7 @@ async function handleOrderCreated(supabase: any, payload: any) {
   const profileId = customData.profile_id;
   const productType = customData.product_type || "paid_votes";
   const productQty = Number(customData.product_qty) || 0;
-  const amountKrw = Number(attrs.total) || 0;
+  const amountKrw = Math.round(Number(attrs.total) / 100) || 0;
   const orderId = String(data.id);
   const idempotencyKey = `ls_${orderId}`;
 
