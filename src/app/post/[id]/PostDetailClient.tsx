@@ -22,6 +22,7 @@ interface PostDetailClientProps {
   balance: number;
   gameRules: GameRules;
   userId?: string;
+  isExpiredView?: boolean;
 }
 
 type CastVoteResult = {
@@ -41,8 +42,10 @@ export function PostDetailClient({
   balance: initialBalance,
   gameRules,
   userId,
+  isExpiredView,
 }: PostDetailClientProps) {
   const router = useRouter();
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const supabase = createClient() as any;
 
@@ -53,9 +56,8 @@ export function PostDetailClient({
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
   const [reportTarget, setReportTarget] = useState<string | null>(null);
   const [voteError, setVoteError] = useState<string | null>(null);
+  const [commentError, setCommentError] = useState<string | null>(null);
   const [pendingVote, setPendingVote] = useState<{ type: "like" | "dislike" } | null>(null);
-
-  const vitality = calculateVitality(post.expiresAt, post.initialTtlMinutes ?? 360);
 
   const handleVote = useCallback(async (type: "like" | "dislike", amount: number) => {
     if (!userId) {
@@ -105,6 +107,33 @@ export function PostDetailClient({
     }
   }, [userId, balance, post.id, initialPost, initialBalance, supabase, router]);
 
+  const vitality = calculateVitality(post.expiresAt, post.initialTtlMinutes ?? 360);
+
+  if (isExpiredView) {
+    return (
+      <div className="min-h-screen bg-[var(--color-background)] flex flex-col items-center justify-center px-4">
+        <div className="text-center">
+          <p className="text-[13px] text-[var(--color-text-muted)] mb-2">생명력 0%</p>
+          <h1 className="text-[48px] font-bold text-[var(--color-vitality-critical)] mb-4">
+            ☠
+          </h1>
+          <p className="text-[18px] text-[var(--color-text-secondary)] mb-2">
+            이 글은 생명력을 다해 사라졌습니다
+          </p>
+          <p className="text-[14px] text-[var(--color-text-muted)] mb-8">
+            생명력이 다한 글은 볼 수 없습니다.
+          </p>
+          <Link
+            href="/"
+            className="inline-flex items-center px-6 py-3 rounded-xl bg-[var(--color-primary)] text-white text-[14px] font-semibold transition-transform active:scale-95"
+          >
+            피드로 돌아가기
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   const handleSubmitComment = async () => {
     if (!userId || !commentText.trim() || isSubmittingComment) return;
     setIsSubmittingComment(true);
@@ -132,7 +161,10 @@ export function PostDetailClient({
           authorId: data.author_id,
         },
       ]);
+      setCommentError(null);
       setCommentText("");
+    } else {
+      setCommentError("댓글 등록에 실패했습니다.");
     }
   };
 
@@ -286,27 +318,34 @@ export function PostDetailClient({
           {!post.isDead && (
             <>
               {userId ? (
-                <div className="flex gap-2">
-                  <textarea
-                    value={commentText}
-                    onChange={(e) => setCommentText(e.target.value)}
-                    placeholder="댓글을 입력하세요..."
-                    rows={2}
-                    maxLength={300}
-                    className={cn(
-                      "flex-1 p-3 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)]",
-                      "text-[14px] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)]",
-                      "outline-none focus:border-[var(--color-primary)] resize-none"
-                    )}
-                  />
-                  <button
-                    onClick={handleSubmitComment}
-                    disabled={!commentText.trim() || isSubmittingComment}
-                    className="px-4 py-2 rounded-xl bg-[var(--color-primary)] text-white text-[14px] font-semibold disabled:opacity-50 self-end"
-                  >
-                    등록
-                  </button>
-                </div>
+                <>
+                  <div className="flex gap-2">
+                    <textarea
+                      value={commentText}
+                      onChange={(e) => setCommentText(e.target.value)}
+                      placeholder="댓글을 입력하세요..."
+                      rows={2}
+                      maxLength={300}
+                      className={cn(
+                        "flex-1 p-3 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)]",
+                        "text-[14px] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)]",
+                        "outline-none focus:border-[var(--color-primary)] resize-none"
+                      )}
+                    />
+                    <button
+                      onClick={handleSubmitComment}
+                      disabled={!commentText.trim() || isSubmittingComment}
+                      className="px-4 py-2 rounded-xl bg-[var(--color-primary)] text-white text-[14px] font-semibold disabled:opacity-50 self-end"
+                    >
+                      등록
+                    </button>
+                  </div>
+                  {commentError && (
+                    <p className="text-[13px] text-[var(--color-danger)] mt-2">
+                      {commentError}
+                    </p>
+                  )}
+                </>
               ) : (
                 <Link
                   href="/login"

@@ -76,10 +76,7 @@ export default async function PostDetailPage({ params }: PostDetailPageProps) {
     notFound();
   }
 
-  // 죽은 글은 작성자만 접근 가능
-  if (postData.is_dead && userId !== postData.author_id) {
-    notFound();
-  }
+  const isExpiredView = postData.is_dead && userId !== postData.author_id;
 
   let balance = 0;
   if (userId) {
@@ -132,6 +129,7 @@ export default async function PostDetailPage({ params }: PostDetailPageProps) {
       balance={balance}
       gameRules={gameRules}
       userId={userId}
+      isExpiredView={isExpiredView}
     />
   );
 }

@@ -61,6 +61,7 @@ function CheckboxItem({
 export function OnboardingClient({ gameRules }: OnboardingClientProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [agreements, setAgreements] = useState({
     terms: false,
     privacy: false,
@@ -84,6 +85,7 @@ export function OnboardingClient({ gameRules }: OnboardingClientProps) {
   const handleStart = async () => {
     if (!allAgreed || isLoading) return;
     setIsLoading(true);
+    setError(null);
 
     const {
       data: { user },
@@ -104,6 +106,7 @@ export function OnboardingClient({ gameRules }: OnboardingClientProps) {
 
     if (error) {
       console.error("Consent update error:", error);
+      setError("처리 중 오류가 발생했습니다. 다시 시도해 주세요.");
       setIsLoading(false);
       return;
     }
@@ -209,6 +212,11 @@ export function OnboardingClient({ gameRules }: OnboardingClientProps) {
         </div>
 
         {/* 시작하기 버튼 */}
+        {error && (
+          <p className="text-[13px] text-[var(--color-danger)] text-center w-full">
+            {error}
+          </p>
+        )}
         <button
           onClick={handleStart}
           disabled={!allAgreed || isLoading}

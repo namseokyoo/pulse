@@ -17,10 +17,12 @@ function formatMinutes(minutes: number): string {
 
 export function LoginClient({ gameRules }: LoginClientProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const supabase = createClient();
 
   const handleGoogleLogin = async () => {
     setIsLoading(true);
+    setError(null);
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
@@ -29,6 +31,7 @@ export function LoginClient({ gameRules }: LoginClientProps) {
     });
     if (error) {
       console.error("Login error:", error);
+      setError("로그인에 실패했습니다. 다시 시도해 주세요.");
       setIsLoading(false);
     }
   };
@@ -71,6 +74,11 @@ export function LoginClient({ gameRules }: LoginClientProps) {
       {/* 하단: 로그인 영역 */}
       <div className="w-full max-w-sm space-y-4">
         {/* Google 로그인 버튼 */}
+        {error && (
+          <p className="text-[13px] text-[var(--color-danger)] text-center">
+            {error}
+          </p>
+        )}
         <button
           onClick={handleGoogleLogin}
           disabled={isLoading}

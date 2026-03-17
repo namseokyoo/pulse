@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { FilterTabs } from "@/components/pulse/FilterTabs";
 import { PostList } from "@/components/pulse/PostList";
 import { VoteBalance } from "@/components/pulse/VoteBalance";
@@ -24,6 +25,17 @@ interface FeedClientProps {
 
 export function FeedClient({ initialPosts, balance, gameRules, userId }: FeedClientProps) {
   const [sort, setSort] = useState<SortOption>("latest");
+  const router = useRouter();
+
+  useEffect(() => {
+    const tick = () => {
+      if (!document.hidden) {
+        router.refresh();
+      }
+    };
+    const id = setInterval(tick, 60_000);
+    return () => clearInterval(id);
+  }, [router]);
 
   const sortedPosts = useMemo(() => {
     const withVitality = initialPosts.map((p) => ({
