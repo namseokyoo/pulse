@@ -1,13 +1,13 @@
 # PRD: PulseUp (펄스업) — 살아있는 익명 게시판
 
-> **v2.2** — UX 체감 강화 (Phase 1.2 추가)
+> **v2.3** — 보안 강화 + QoL 개선 반영
 
 ## 문서 정보
 
 | 항목 | 내용 |
 |------|------|
-| 버전 | v2.2 |
-| 작성일 | 2026-03-16 |
+| 버전 | v2.3 |
+| 작성일 | 2026-03-17 |
 | 작성자 | CEO Agent |
 | 상태 | 회장님 승인 |
 
@@ -81,6 +81,8 @@
 | 카카오톡 | 2 |
 | 랜덤 닉네임 부여 (가입 시) | 1 |
 | 닉네임 수정 (1회/주) | 1 |
+| 닉네임 고유성 (중복 불가) | 1 |
+| 닉네임 스냅샷 (작성 시점 고정) | 1 |
 | 닉네임 수정권 판매 | 3 |
 
 ### 2.5 프로필
@@ -88,12 +90,14 @@
 - 살아있는 글 목록 (현재 생명력 표시)
 - 죽은 글 기록 (최종 좋아요/싫어요 수, 생존 시간)
 - 투표권 잔액 (무료/유료 구분)
+- 죽은 글 상세 접근 (작성자 전용) + "다시 작성하기" 부활
+- 투표권 리셋 카운트다운 (다음 충전까지 남은 시간)
 
 ### 2.6 신고 기능 (Phase 1)
 
 - 글/댓글에 **신고 버튼** (사유 선택: 욕설/음란/스팸/기타)
-- 신고 N건 누적 → **자동 숨김** (is_hidden=true)
-- 관리자 확인: Supabase Dashboard에서 직접 확인 (별도 관리자 UI 불필요)
+- 신고 누적 → **자동 숨김** (game_rules.report_hide_threshold, 기본 10건, 관리자 조정 가능)
+- 관리자 확인: 관리자 대시보드 (/admin/reports)
 
 > 이용약관에 금지행위와 "14세 이상 이용" 명시. 일반 게시판 수준의 최소 장치.
 > 관리자 대시보드, AI 필터, SLA 프로세스 등은 Phase 3에서 유저 규모에 따라 검토.
@@ -133,12 +137,12 @@
 
 ```sql
 -- 프로필
-profiles: id, nickname, nickname_changed_at,
+profiles: id, nickname(UNIQUE), nickname_changed_at,
           free_votes(10), free_votes_reset_at,
           paid_votes(0), created_at
 
 -- 게시글
-posts: id, author_id, title, content(TEXT),
+posts: id, author_id, author_nickname, title, content(TEXT),
        like_count, dislike_count,
        expires_at, is_dead(false), dead_at,
        reported_count(0), is_hidden(false),
@@ -146,7 +150,7 @@ posts: id, author_id, title, content(TEXT),
 
 -- 댓글
 comments: id, post_id, parent_id(NULL),
-          author_id, content, created_at
+          author_id, author_nickname, content, created_at
 
 -- 투표 로그
 vote_logs: id, user_id, post_id, vote_type(like/dislike),
@@ -162,13 +166,29 @@ vote_balance_logs: id, user_id,
 -- 신고
 reports: id, reporter_id, target_type(post/comment),
          target_id, reason, status(pending/reviewed/dismissed),
-         created_at
+         created_at,
+         UNIQUE(reporter_id, target_type, target_id)
 
 -- 결제 기록 (Phase 2)
 payment_records: id, user_id, lemon_order_id(UNIQUE),
                  votes_purchased, amount_krw,
                  status(pending/completed/refunded),
                  created_at
+
+-- 게임 설정 (singleton)
+game_rules: id(TRUE), vote_time_change_minutes(10),
+            daily_free_votes(10), reset_eligibility_hours(20),
+            initial_ttl_minutes(360), report_hide_threshold(10),
+            updated_at, change_reason
+
+-- 게임 설정 변경 이력
+game_rules_history: id, vote_time_change_minutes, daily_free_votes,
+                    reset_eligibility_hours, initial_ttl_minutes,
+                    report_hide_threshold, change_reason,
+                    changed_by, changed_at
+
+-- 관리자 목록
+admin_users: id, uid(UNIQUE), created_at
 ```
 
 ---
@@ -213,6 +233,19 @@ payment_records: id, user_id, lemon_order_id(UNIQUE),
 - 참여 시점 로그인 유도 — 투표/글쓰기/댓글 시 로그인 리다이렉트
 - localStorage 기반 동의 기록 — 기존 회원 체크박스 생략
 
+**추가 완료 항목 (v1.2, 2026-03-17)**:
+- 닉네임 스냅샷 — posts/comments에 작성 시점 닉네임 고정 (author_nickname)
+- 죽은 글 상세 페이지 — 작성자 전용 접근 + "다시 작성하기" 부활 기능
+- 죽은 글 비작성자 안내 — 세계관 맥락의 "사라진 글" 페이지 (404 대체)
+- 피드 자동 갱신 — 60초 polling + Visibility API (탭 비활성 시 일시정지)
+- 에러 핸들링 일관성 — 로그인/온보딩/댓글/투표 에러 UI 통일
+- 로그인 리다이렉트 — ?next= 파라미터로 원래 페이지 복귀
+- 닉네임 고유성 — UNIQUE 제약 + 실시간 중복 체크 UI
+- 투표권 리셋 타이머 — "다음 충전까지 X시간 Y분" 카운트다운 표시
+- 신고 임계치 유연화 — game_rules.report_hide_threshold 연동 (기본 10건, 관리자 조정 가능)
+- 관리자 대시보드 — 통계/게시글/유저/신고/게임설정 관리 패널
+- as any 타입 단언 전량 제거 — TypeScript strict 타입 안전성 강화
+
 ### Phase 1.2: UX 체감 강화 (1주)
 
 **검증 가설**: "생명력 시스템의 긴장감과 참여 보상이 사용자에게 체감되는가?"
@@ -249,7 +282,7 @@ payment_records: id, user_id, lemon_order_id(UNIQUE),
 
 ### Phase 3: 고도화 (4주)
 - 알림 시스템
-- 관리자 패널 + AI 모더레이션
+- AI 모더레이션
 - 닉네임 수정권 판매
 - SEO / PWA
 
@@ -266,6 +299,10 @@ payment_records: id, user_id, lemon_order_id(UNIQUE),
 | XSS | 입력 sanitization |
 | 다계정 | Google OAuth 1인 1계정 |
 | 결제 (Phase 2) | HMAC + idempotency + SKU 검증 |
+| 닉네임 변경 | BEFORE UPDATE 트리거 — 서버 시각 강제, 7일 미경과 시 차단 |
+| 신고 레이스 | UNIQUE 제약 + ON CONFLICT DO NOTHING (TOCTOU 방지) |
+| 투표 레이스 | FOR UPDATE 행 잠금 (만료 경계 동시 투표 방지) |
+| 옵티미스틱 UI | 확정 상태(confirmedPost/Balance) 기반 롤백 |
 
 ---
 
