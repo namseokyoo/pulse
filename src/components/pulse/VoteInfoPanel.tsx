@@ -99,6 +99,7 @@ export function VoteInfoPanel({
         </p>
       ) : null}
 
+      {/* PAYMENT_SUSPENDED: 사업자 등록 후 복원
       {showPurchaseButton && isLoggedIn && (
         <Link
           href="/purchase"
@@ -107,6 +108,7 @@ export function VoteInfoPanel({
           투표권 구매하기 →
         </Link>
       )}
+      */}
 
       {showPurchaseButton && !isLoggedIn && (
         <Link

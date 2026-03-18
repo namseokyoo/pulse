@@ -1,7 +1,6 @@
-import { createClient } from "@/lib/supabase/server";
+// PAYMENT_SUSPENDED: 사업자 등록 후 복원
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import PurchaseSuccessClient from "./PurchaseSuccessClient";
 
 export const metadata: Metadata = {
   title: "결제 완료",
@@ -10,15 +9,6 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-export default async function PurchaseSuccessPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
-
-  return <PurchaseSuccessClient userId={user.id} />;
+export default function PurchaseSuccessPage() {
+  redirect("/");
 }

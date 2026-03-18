@@ -306,7 +306,9 @@ export function ProfileClient({ nickname, email, freeVotes, paidVotes, alivePost
             <div className="pt-2">
               <div className="flex items-center justify-between mb-3">
                 <h2 className="text-[16px] font-semibold text-[var(--color-text-primary)]">구매 내역</h2>
+                {/* PAYMENT_SUSPENDED: 사업자 등록 후 복원
                 <a href="/purchase" className="text-[13px] text-[var(--color-primary)] hover:opacity-80 transition-opacity">투표권 구매 →</a>
+                */}
               </div>
               {ordersLoading ? (
                 <p className="text-[14px] text-[var(--color-text-muted)] py-4 text-center">불러오는 중...</p>
