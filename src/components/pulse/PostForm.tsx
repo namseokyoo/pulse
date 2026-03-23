@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { cn } from "@/lib/utils/format";
+import { cn, formatMinutes } from "@/lib/utils/format";
 import type { GameRules } from "@/types";
 
 export interface PostFormValues {
@@ -16,12 +16,6 @@ export interface PostFormProps {
   gameRules?: GameRules;
   initialTitle?: string;
   initialContent?: string;
-}
-
-function formatMinutes(minutes: number): string {
-  if (minutes >= 60 && minutes % 60 === 0) return `${minutes / 60}시간`;
-  if (minutes >= 60) return `${Math.floor(minutes / 60)}시간 ${minutes % 60}분`;
-  return `${minutes}분`;
 }
 
 export function PostForm({

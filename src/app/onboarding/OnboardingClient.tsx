@@ -4,16 +4,11 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { formatMinutes } from "@/lib/utils/format";
 import type { Database, GameRules } from "@/types";
 
 interface OnboardingClientProps {
   gameRules: GameRules;
-}
-
-function formatMinutes(minutes: number): string {
-  if (minutes >= 60 && minutes % 60 === 0) return `${minutes / 60}시간`;
-  if (minutes >= 60) return `${Math.floor(minutes / 60)}시간 ${minutes % 60}분`;
-  return `${minutes}분`;
 }
 
 function CheckboxItem({

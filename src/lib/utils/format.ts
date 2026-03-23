@@ -30,3 +30,12 @@ export function formatCount(count: number): string {
 export function cn(...classes: (string | undefined | false | null)[]): string {
   return classes.filter(Boolean).join(" ");
 }
+
+/**
+ * 분(minutes) 단위를 한국어 시간 표현으로 포맷
+ */
+export function formatMinutes(minutes: number): string {
+  if (minutes >= 60 && minutes % 60 === 0) return `${minutes / 60}시간`;
+  if (minutes >= 60) return `${Math.floor(minutes / 60)}시간 ${minutes % 60}분`;
+  return `${minutes}분`;
+}

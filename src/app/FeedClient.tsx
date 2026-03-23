@@ -170,17 +170,19 @@ export function FeedClient({ initialPosts, freeVotes, paidVotes, gameRules, user
       <main className="mx-auto max-w-[680px] px-4 pb-24">
         {!userId && (
           <div className="mb-4 p-4 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)] text-center">
-            <p className="text-[15px] text-[var(--color-text-primary)] font-semibold mb-1">
-              투표하고 글의 생명을 결정하세요
+            <p className="text-[15px] text-[var(--color-text-primary)] font-semibold mb-2">
+              📌 PulseUp 규칙은 단 3가지
             </p>
-            <p className="text-[13px] text-[var(--color-text-muted)] mb-3">
-              {`좋아요는 +${gameRules.voteTimeChangeMinutes}분, 싫어요는 -${gameRules.voteTimeChangeMinutes}분의 생명력을 변화시킵니다`}
-            </p>
+            <div className="text-[13px] text-[var(--color-text-muted)] mb-3 space-y-1">
+              <p>1️⃣ 글은 {gameRules.initialTtlMinutes / 60}시간 후 자동으로 사라집니다</p>
+              <p>2️⃣ 좋아요 → 생명 연장 / 싫어요 → 생명 단축</p>
+              <p>3️⃣ 매일 투표권 {gameRules.dailyFreeVotes}개 무료 충전</p>
+            </div>
             <Link
               href="/login"
               className="inline-block px-6 py-2.5 rounded-xl bg-[var(--color-primary)] text-white text-[14px] font-semibold"
             >
-              시작하기
+              지금 투표하기 — 투표권 {gameRules.dailyFreeVotes}개 무료
             </Link>
           </div>
         )}
