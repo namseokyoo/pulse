@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PulseUp / PulseDown — Claude Icon Preview</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #1a1a1a;
+      color: #e5e5e5;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Pretendard, sans-serif;
+      padding: 48px 40px 72px;
+      min-height: 100vh;
+    }
+
+    /* ── 헤더 ── */
+    .page-header {
+      margin-bottom: 48px;
+      border-bottom: 1px solid #2a2a2a;
+      padding-bottom: 24px;
+    }
+    .page-header h1 {
+      font-size: 22px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 6px;
+    }
+    .page-header .meta {
+      font-size: 12px;
+      color: #555;
+      letter-spacing: 0.06em;
+    }
+    .page-header .meta span {
+      color: #22c55e;
+      font-weight: 600;
+    }
+
+    /* ── 섹션 ── */
+    .section {
+      margin-bottom: 56px;
+    }
+    .section-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin-bottom: 24px;
+      border-bottom: 1px solid #242424;
+      padding-bottom: 10px;
+    }
+
+    /* ── 크기 그리드 ── */
+    .size-row {
+      display: flex;
+      align-items: center;
+      gap: 40px;
+      flex-wrap: wrap;
+      margin-bottom: 32px;
+    }
+    .size-cell {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+    .size-label {
+      font-size: 11px;
+      color: #555;
+    }
+    .icon-bg {
+      background: #242424;
+      border-radius: 8px;
+      padding: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* ── 카드 컨텍스트 ── */
+    .card-sim {
+      background: #242424;
+      border: 1px solid #2e2e2e;
+      border-radius: 12px;
+      padding: 16px 20px;
+      max-width: 420px;
+      margin-bottom: 20px;
+    }
+    .card-meta {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+    .avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #3a3a3a;
+    }
+    .author {
+      font-size: 13px;
+      font-weight: 600;
+      color: #ccc;
+    }
+    .time {
+      font-size: 11px;
+      color: #555;
+      margin-left: auto;
+    }
+    .card-body {
+      font-size: 14px;
+      color: #bbb;
+      line-height: 1.6;
+      margin-bottom: 14px;
+    }
+    .card-actions {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding-top: 12px;
+      border-top: 1px solid #2e2e2e;
+    }
+    .action-btn {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 13px;
+      color: #666;
+      cursor: pointer;
+      border: none;
+      background: none;
+      padding: 0;
+    }
+    .action-btn.up   { color: #22c55e; }
+    .action-btn.down { color: #ef4444; }
+    .action-btn .count { font-size: 12px; color: #777; }
+
+    /* ── 투표 버튼 컨텍스트 ── */
+    .vote-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+    .vote-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border-radius: 8px;
+      border: 1.5px solid;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      background: none;
+    }
+    .vote-btn.up-btn {
+      border-color: #22c55e;
+      color: #22c55e;
+    }
+    .vote-btn.down-btn {
+      border-color: #ef4444;
+      color: #ef4444;
+    }
+    .vote-btn.up-btn.active {
+      background: rgba(34,197,94,0.12);
+    }
+    .vote-btn.down-btn.active {
+      background: rgba(239,68,68,0.12);
+    }
+
+    /* ── 경쟁 비교 테이블 ── */
+    .compare-grid {
+      display: grid;
+      grid-template-columns: 120px 1fr 1fr 1fr;
+      gap: 1px;
+      background: #2a2a2a;
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 24px;
+    }
+    .cg-cell {
+      background: #1e1e1e;
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .cg-cell.header {
+      background: #242424;
+      justify-content: center;
+    }
+    .cg-label {
+      font-size: 11px;
+      color: #555;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      font-weight: 600;
+    }
+    .cg-team {
+      font-size: 14px;
+      font-weight: 700;
+      color: #fff;
+    }
+    .cg-team.claude  { color: #a78bfa; }
+    .cg-team.codex   { color: #60a5fa; }
+    .cg-team.gemini  { color: #fbbf24; }
+    .compare-icon-pair {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .cg-row-label {
+      font-size: 12px;
+      color: #666;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 500;
+    }
+
+    /* ── path 코드 표시 ── */
+    .path-block {
+      background: #141414;
+      border: 1px solid #2a2a2a;
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin-top: 8px;
+      font-family: 'SFMono-Regular', 'JetBrains Mono', Consolas, monospace;
+      font-size: 11px;
+      color: #8b8b8b;
+      overflow-x: auto;
+    }
+    .path-block .label {
+      color: #555;
+      margin-bottom: 6px;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+    .path-block .up-path   { color: #4ade80; }
+    .path-block .down-path { color: #f87171; }
+
+    /* ── 특성 태그 ── */
+    .tags {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: 6px;
+    }
+    .tag {
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      background: #2a2a2a;
+      color: #777;
+      border: 1px solid #333;
+    }
+    .tag.highlight {
+      border-color: #a78bfa44;
+      color: #a78bfa;
+      background: #2a2a3a;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════
+     HEADER
+══════════════════════════════════════════════════════════ -->
+<div class="page-header">
+  <h1>PulseUp &amp; PulseDown — SVG Icon Preview</h1>
+  <p class="meta">
+    <span>Generated by Claude</span> &nbsp;·&nbsp;
+    SVG Icon Design Competition &nbsp;·&nbsp;
+    viewBox 0 0 24 24 · stroke-based · lucide-react compatible
+  </p>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════
+     SECTION 1 — 크기별 미리보기
+══════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-title">01 — Size Preview (13px · 20px · 32px)</div>
+
+  <!-- 좋아요 -->
+  <div style="margin-bottom:28px;">
+    <div style="font-size:13px;color:#888;margin-bottom:14px;font-weight:500;">PulseUp (좋아요)</div>
+    <div class="size-row">
+
+      <div class="size-cell">
+        <div class="icon-bg">
+          <!-- 13px -->
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+               stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M2 14 L5 14 L7 14 L9 8 L11 17 L13 11 L15 5 L17 11 L19 7 M16 4 L19 7 L22 4"/>
+          </svg>
+        </div>
+        <span class="size-label">13px</span>
+      </div>
+
+      <div class="size-cell">
+        <div class="icon-bg">
+          <!-- 20px -->
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+               stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M2 14 L5 14 L7 14 L9 8 L11 17 L13 11 L15 5 L17 11 L19 7 M16 4 L19 7 L22 4"/>
+          </svg>
+        </div>
+        <span class="size-label">20px</span>
+      </div>
+
+      <div class="size-cell">
+        <div class="icon-bg">
+          <!-- 32px -->
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none"
+               stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M2 14 L5 14 L7 14 L9 8 L11 17 L13 11 L15 5 L17 11 L19 7 M16 4 L19 7 L22 4"/>
+          </svg>
+        </div>
+        <span class="size-label">32px</span>
+      </div>
+
+      <!-- 확대 + 그리드 -->
+      <div class="size-cell" style="margin-left:20px;">
+        <div class="icon-bg" style="position:relative;">
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none"
+               stroke="#22c55e" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+               style="position:relative;z-index:1;">
+            <!-- 그리드 (보조선) -->
+            <line x1="0" y1="12" x2="24" y2="12" stroke="#333" stroke-width="0.3" stroke-dasharray="1,1"/>
+            <line x1="12" y1="0" x2="12" y2="24" stroke="#333" stroke-width="0.3" stroke-dasharray="1,1"/>
+            <path d="M2 14 L5 14 L7 14 L9 8 L11 17 L13 11 L15 5 L17 11 L19 7 M16 4 L19 7 L22 4"/>
+          </svg>
+        </div>
+        <span class="size-label">64px + grid</span>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 싫어요 -->
+  <div>
+    <div style="font-size:13px;color:#888;margin-bottom:14px;font-weight:500;">PulseDown (싫어요)</div>
+    <div class="size-row">
+
+      <div class="size-cell">
+        <div class="icon-bg">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+               stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M2 10 L5 10 L7 10 L9 16 L11 7 L13 13 L15 19 L17 13 L19 17 M16 20 L19 17 L22 20"/>
+          </svg>
+        </div>
+        <span class="size-label">13px</span>
+      </div>
+
+      <div class="size-cell">
+        <div class="icon-bg">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+               stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M2 10 L5 10 L7 10 L9 16 L11 7 L13 13 L15 19 L17 13 L19 17 M16 20 L19 17 L22 20"/>
+          </svg>
+        </div>
+        <span class="size-label">20px</span>
+      </div>
+
+      <div class="size-cell">
+        <div class="icon-bg">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none"
+               stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M2 10 L5 10 L7 10 L9 16 L11 7 L13 13 L15 19 L17 13 L19 17 M16 20 L19 17 L22 20"/>
+          </svg>
+        </div>
+        <span class="size-label">32px</span>
+      </div>
+
+      <!-- 확대 + 그리드 -->
+      <div class="size-cell" style="margin-left:20px;">
+        <div class="icon-bg">
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none"
+               stroke="#ef4444" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="0" y1="12" x2="24" y2="12" stroke="#333" stroke-width="0.3" stroke-dasharray="1,1"/>
+            <line x1="12" y1="0" x2="12" y2="24" stroke="#333" stroke-width="0.3" stroke-dasharray="1,1"/>
+            <path d="M2 10 L5 10 L7 10 L9 16 L11 7 L13 13 L15 19 L17 13 L19 17 M16 20 L19 17 L22 20"/>
+          </svg>
+        </div>
+        <span class="size-label">64px + grid</span>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════
+     SECTION 2 — 실사용 컨텍스트: 글 카드
+══════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-title">02 — 실사용 컨텍스트: 글 카드 (13px)</div>
+
+  <div class="card-sim">
+    <div class="card-meta">
+      <div class="avatar"></div>
+      <span class="author">익명의 고양이</span>
+      <span class="time">3분 전</span>
+    </div>
+    <div class="card-body">
+      "오늘 점심 메뉴 뭐 먹었어요? 저는 김치찌개인데 왠지 오늘따라 너무 맛있었어요."
+    </div>
+    <div class="card-actions">
+      <button class="action-btn up">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 14 L5 14 L7 14 L9 8 L11 17 L13 11 L15 5 L17 11 L19 7 M16 4 L19 7 L22 4"/>
+        </svg>
+        <span class="count">24</span>
+      </button>
+      <button class="action-btn down">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 10 L5 10 L7 10 L9 16 L11 7 L13 13 L15 19 L17 13 L19 17 M16 20 L19 17 L22 20"/>
+        </svg>
+        <span class="count">3</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="card-sim">
+    <div class="card-meta">
+      <div class="avatar"></div>
+      <span class="author">새벽세시반</span>
+      <span class="time">1시간 전</span>
+    </div>
+    <div class="card-body">
+      "취준 1년 차인데 서류 탈락만 30번째예요. 이제 포기해야 할까요?"
+    </div>
+    <div class="card-actions">
+      <button class="action-btn up" style="color:#16a34a;">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 14 L5 14 L7 14 L9 8 L11 17 L13 11 L15 5 L17 11 L19 7 M16 4 L19 7 L22 4"/>
+        </svg>
+        <span class="count">187</span>
+      </button>
+      <button class="action-btn" style="color:#555;">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 10 L5 10 L7 10 L9 16 L11 7 L13 13 L15 19 L17 13 L19 17 M16 20 L19 17 L22 20"/>
+        </svg>
+        <span class="count">8</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════
+     SECTION 3 — 실사용 컨텍스트: 투표 버튼 (20px)
+══════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-title">03 — 실사용 컨텍스트: 투표 버튼 (20px)</div>
+
+  <!-- 비활성 상태 -->
+  <div style="margin-bottom:16px;">
+    <div style="font-size:11px;color:#555;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.08em;">비활성 (미투표)</div>
+    <div class="vote-row">
+      <button class="vote-btn up-btn">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 14 L5 14 L7 14 L9 8 L11 17 L13 11 L15 5 L17 11 L19 7 M16 4 L19 7 L22 4"/>
+        </svg>
+        공감해요
+      </button>
+      <button class="vote-btn down-btn">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 10 L5 10 L7 10 L9 16 L11 7 L13 13 L15 19 L17 13 L19 17 M16 20 L19 17 L22 20"/>
+        </svg>
+        별로예요
+      </button>
+    </div>
+  </div>
+
+  <!-- 좋아요 선택 상태 -->
+  <div style="margin-bottom:16px;">
+    <div style="font-size:11px;color:#555;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.08em;">공감 선택됨</div>
+    <div class="vote-row">
+      <button class="vote-btn up-btn active">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 14 L5 14 L7 14 L9 8 L11 17 L13 11 L15 5 L17 11 L19 7 M16 4 L19 7 L22 4"/>
+        </svg>
+        공감해요 · 24
+      </button>
+      <button class="vote-btn down-btn" style="opacity:0.4;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 10 L5 10 L7 10 L9 16 L11 7 L13 13 L15 19 L17 13 L19 17 M16 20 L19 17 L22 20"/>
+        </svg>
+        별로예요 · 3
+      </button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════
+     SECTION 4 — 경쟁팀 비교
+══════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-title">04 — Team Comparison (Claude vs Codex vs Gemini)</div>
+
+  <div class="compare-grid">
+    <!-- 헤더 행 -->
+    <div class="cg-cell header"><div class="cg-label">Team</div></div>
+    <div class="cg-cell header" style="background:#1e1e2e;">
+      <div class="cg-team claude">Claude</div>
+      <div style="font-size:10px;color:#666;margin-top:2px;">쌍봉 ECG + 화살표</div>
+    </div>
+    <div class="cg-cell header" style="background:#1a1e2e;">
+      <div class="cg-team codex">Codex</div>
+      <div style="font-size:10px;color:#666;margin-top:2px;">단봉 + 작은 화살표</div>
+    </div>
+    <div class="cg-cell header" style="background:#1e1e1a;">
+      <div class="cg-team gemini">Gemini</div>
+      <div style="font-size:10px;color:#666;margin-top:2px;">오프센터 + 큰 진폭</div>
+    </div>
+
+    <!-- 좋아요 행 -->
+    <div class="cg-cell"><div class="cg-row-label" style="color:#22c55e;">PulseUp</div></div>
+
+    <!-- Claude Up -->
+    <div class="cg-cell" style="background:#1a1e1a;">
+      <div class="compare-icon-pair">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 14 L5 14 L7 14 L9 8 L11 17 L13 11 L15 5 L17 11 L19 7 M16 4 L19 7 L22 4"/>
+        </svg>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 14 L5 14 L7 14 L9 8 L11 17 L13 11 L15 5 L17 11 L19 7 M16 4 L19 7 L22 4"/>
+        </svg>
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 14 L5 14 L7 14 L9 8 L11 17 L13 11 L15 5 L17 11 L19 7 M16 4 L19 7 L22 4"/>
+        </svg>
+      </div>
+      <div class="tags">
+        <span class="tag highlight">쌍봉 ECG</span>
+        <span class="tag highlight">자연스러운 화살표</span>
+        <span class="tag">균형 진폭</span>
+      </div>
+    </div>
+
+    <!-- Codex Up -->
+    <div class="cg-cell" style="background:#1a1a1e;">
+      <div class="compare-icon-pair">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 12H7L9 12L11 5L13 16L15 12H18L22 8M22 8H19.5M22 8V10.5"/>
+        </svg>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 12H7L9 12L11 5L13 16L15 12H18L22 8M22 8H19.5M22 8V10.5"/>
+        </svg>
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 12H7L9 12L11 5L13 16L15 12H18L22 8M22 8H19.5M22 8V10.5"/>
+        </svg>
+      </div>
+      <div class="tags">
+        <span class="tag">정중앙 기준선</span>
+        <span class="tag">작은 화살표</span>
+        <span class="tag">보수적 진폭</span>
+      </div>
+    </div>
+
+    <!-- Gemini Up -->
+    <div class="cg-cell" style="background:#1e1e1a;">
+      <div class="compare-icon-pair">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 13 L5 13 L7 16 L10 5 L13 18 L16 10 L19 6 M15.5 5 L19 5 L19 8.5"/>
+        </svg>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 13 L5 13 L7 16 L10 5 L13 18 L16 10 L19 6 M15.5 5 L19 5 L19 8.5"/>
+        </svg>
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 13 L5 13 L7 16 L10 5 L13 18 L16 10 L19 6 M15.5 5 L19 5 L19 8.5"/>
+        </svg>
+      </div>
+      <div class="tags">
+        <span class="tag">오프센터</span>
+        <span class="tag">큰 진폭</span>
+        <span class="tag">큰 화살표</span>
+      </div>
+    </div>
+
+    <!-- 싫어요 행 -->
+    <div class="cg-cell"><div class="cg-row-label" style="color:#ef4444;">PulseDown</div></div>
+
+    <!-- Claude Down -->
+    <div class="cg-cell" style="background:#1e1a1a;">
+      <div class="compare-icon-pair">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 10 L5 10 L7 10 L9 16 L11 7 L13 13 L15 19 L17 13 L19 17 M16 20 L19 17 L22 20"/>
+        </svg>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 10 L5 10 L7 10 L9 16 L11 7 L13 13 L15 19 L17 13 L19 17 M16 20 L19 17 L22 20"/>
+        </svg>
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 10 L5 10 L7 10 L9 16 L11 7 L13 13 L15 19 L17 13 L19 17 M16 20 L19 17 L22 20"/>
+        </svg>
+      </div>
+      <div class="tags">
+        <span class="tag highlight">쌍봉 ECG</span>
+        <span class="tag highlight">Up의 거울상</span>
+        <span class="tag">명확한 하강</span>
+      </div>
+    </div>
+
+    <!-- Codex Down -->
+    <div class="cg-cell" style="background:#1a1a1e;">
+      <div class="compare-icon-pair">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 12H7L9 12L11 19L13 8L15 12H18L22 16M22 16H19.5M22 16V13.5"/>
+        </svg>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 12H7L9 12L11 19L13 8L15 12H18L22 16M22 16H19.5M22 16V13.5"/>
+        </svg>
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 12H7L9 12L11 19L13 8L15 12H18L22 16M22 16H19.5M22 16V13.5"/>
+        </svg>
+      </div>
+      <div class="tags">
+        <span class="tag">정중앙 기준선</span>
+        <span class="tag">작은 화살표</span>
+        <span class="tag">보수적 진폭</span>
+      </div>
+    </div>
+
+    <!-- Gemini Down -->
+    <div class="cg-cell" style="background:#1e1e1a;">
+      <div class="compare-icon-pair">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 11 L5 11 L7 8 L10 19 L13 6 L16 14 L19 18 M15.5 19 L19 19 L19 15.5"/>
+        </svg>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 11 L5 11 L7 8 L10 19 L13 6 L16 14 L19 18 M15.5 19 L19 19 L19 15.5"/>
+        </svg>
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 11 L5 11 L7 8 L10 19 L13 6 L16 14 L19 18 M15.5 19 L19 19 L19 15.5"/>
+        </svg>
+      </div>
+      <div class="tags">
+        <span class="tag">오프센터</span>
+        <span class="tag">큰 진폭</span>
+        <span class="tag">큰 화살표</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 특성 비교 표 -->
+  <div style="background:#1e1e1e;border:1px solid #2a2a2a;border-radius:10px;padding:20px;margin-top:4px;">
+    <div style="font-size:11px;color:#555;margin-bottom:14px;text-transform:uppercase;letter-spacing:0.1em;">특성 비교</div>
+    <table style="width:100%;border-collapse:collapse;font-size:12px;">
+      <thead>
+        <tr>
+          <th style="text-align:left;color:#555;padding:6px 12px 6px 0;border-bottom:1px solid #2a2a2a;font-weight:500;">특성</th>
+          <th style="text-align:center;color:#a78bfa;padding:6px 12px;border-bottom:1px solid #2a2a2a;font-weight:600;">Claude</th>
+          <th style="text-align:center;color:#60a5fa;padding:6px 12px;border-bottom:1px solid #2a2a2a;font-weight:500;">Codex</th>
+          <th style="text-align:center;color:#fbbf24;padding:6px 12px;border-bottom:1px solid #2a2a2a;font-weight:500;">Gemini</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="color:#888;padding:8px 12px 8px 0;border-bottom:1px solid #222;">ECG 패턴</td>
+          <td style="text-align:center;color:#a78bfa;padding:8px 12px;border-bottom:1px solid #222;">쌍봉 (2 spike)</td>
+          <td style="text-align:center;color:#666;padding:8px 12px;border-bottom:1px solid #222;">단봉 (1 spike)</td>
+          <td style="text-align:center;color:#666;padding:8px 12px;border-bottom:1px solid #222;">단봉 (1 spike)</td>
+        </tr>
+        <tr>
+          <td style="color:#888;padding:8px 12px 8px 0;border-bottom:1px solid #222;">화살표 연결</td>
+          <td style="text-align:center;color:#a78bfa;padding:8px 12px;border-bottom:1px solid #222;">ECG에서 자연스럽게 이어짐</td>
+          <td style="text-align:center;color:#666;padding:8px 12px;border-bottom:1px solid #222;">별도 M 명령 분리</td>
+          <td style="text-align:center;color:#666;padding:8px 12px;border-bottom:1px solid #222;">별도 M 명령 분리</td>
+        </tr>
+        <tr>
+          <td style="color:#888;padding:8px 12px 8px 0;border-bottom:1px solid #222;">Up/Down 대칭성</td>
+          <td style="text-align:center;color:#a78bfa;padding:8px 12px;border-bottom:1px solid #222;">완전 거울상 (y=12 기준)</td>
+          <td style="text-align:center;color:#666;padding:8px 12px;border-bottom:1px solid #222;">거울상</td>
+          <td style="text-align:center;color:#666;padding:8px 12px;border-bottom:1px solid #222;">유사 대칭</td>
+        </tr>
+        <tr>
+          <td style="color:#888;padding:8px 12px 8px 0;border-bottom:1px solid #222;">13px 가독성</td>
+          <td style="text-align:center;color:#a78bfa;padding:8px 12px;border-bottom:1px solid #222;">최적 (포인트 수 균형)</td>
+          <td style="text-align:center;color:#666;padding:8px 12px;border-bottom:1px solid #222;">좋음</td>
+          <td style="text-align:center;color:#666;padding:8px 12px;border-bottom:1px solid #222;">뭉개질 수 있음</td>
+        </tr>
+        <tr>
+          <td style="color:#888;padding:8px 12px 8px 0;">로그인 ECG 일관성</td>
+          <td style="text-align:center;color:#a78bfa;padding:8px 12px;">쌍봉 패턴 계승</td>
+          <td style="text-align:center;color:#666;padding:8px 12px;">부분적</td>
+          <td style="text-align:center;color:#666;padding:8px 12px;">부분적</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════
+     SECTION 5 — SVG Path 코드
+══════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-title">05 — SVG Path Code (React Ready)</div>
+
+  <div class="path-block">
+    <div class="label">PulseUp — lucide-react compatible</div>
+    <div class="up-path">
+      &lt;svg viewBox="0 0 24 24" fill="none" stroke="currentColor"<br>
+      &nbsp;&nbsp;&nbsp;&nbsp; strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"&gt;<br>
+      &nbsp;&nbsp;&lt;path d="M2 14 L5 14 L7 14 L9 8 L11 17 L13 11 L15 5 L17 11 L19 7 M16 4 L19 7 L22 4" /&gt;<br>
+      &lt;/svg&gt;
+    </div>
+  </div>
+
+  <div class="path-block" style="margin-top:12px;">
+    <div class="label">PulseDown — lucide-react compatible</div>
+    <div class="down-path">
+      &lt;svg viewBox="0 0 24 24" fill="none" stroke="currentColor"<br>
+      &nbsp;&nbsp;&nbsp;&nbsp; strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"&gt;<br>
+      &nbsp;&nbsp;&lt;path d="M2 10 L5 10 L7 10 L9 16 L11 7 L13 13 L15 19 L17 13 L19 17 M16 20 L19 17 L22 20" /&gt;<br>
+      &lt;/svg&gt;
+    </div>
+  </div>
+
+  <div style="margin-top:16px;padding:14px 20px;background:#1a1a2e;border:1px solid #2a2a4a;border-radius:8px;font-size:12px;color:#8888cc;line-height:1.7;">
+    <strong style="color:#a78bfa;">설계 노트</strong><br>
+    PulseUp 기준선 y=14 (하단 여백 확보) · 첫 스파이크 y=8 · 메인 스파이크 y=5 · 화살표 ↗ (16,4)→(19,7)→(22,4)<br>
+    PulseDown은 24-y 거울 변환 · 기준선 y=10 · 메인 스파이크 y=19 · 화살표 ↘ (16,20)→(19,17)→(22,20)<br>
+    쌍봉 패턴: 로그인 페이지 ECG (x=85 첫봉, x=130 둘째봉) 에서 영감 · 24x24 격자 내 10포인트 최적화
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════
+     SECTION 6 — 다크/라이트 배경 대비
+══════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-title">06 — Background Contrast Check</div>
+
+  <div style="display:flex;gap:16px;flex-wrap:wrap;">
+
+    <!-- 다크 -->
+    <div style="background:#0f0f0f;padding:24px;border-radius:10px;display:flex;gap:20px;align-items:center;">
+      <div style="font-size:11px;color:#444;margin-right:4px;">#0f0f0f</div>
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M2 14 L5 14 L7 14 L9 8 L11 17 L13 11 L15 5 L17 11 L19 7 M16 4 L19 7 L22 4"/>
+      </svg>
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M2 10 L5 10 L7 10 L9 16 L11 7 L13 13 L15 19 L17 13 L19 17 M16 20 L19 17 L22 20"/>
+      </svg>
+    </div>
+
+    <!-- 미드 다크 -->
+    <div style="background:#1a1a1a;padding:24px;border-radius:10px;display:flex;gap:20px;align-items:center;">
+      <div style="font-size:11px;color:#444;margin-right:4px;">#1a1a1a</div>
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M2 14 L5 14 L7 14 L9 8 L11 17 L13 11 L15 5 L17 11 L19 7 M16 4 L19 7 L22 4"/>
+      </svg>
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M2 10 L5 10 L7 10 L9 16 L11 7 L13 13 L15 19 L17 13 L19 17 M16 20 L19 17 L22 20"/>
+      </svg>
+    </div>
+
+    <!-- 라이트 -->
+    <div style="background:#f8f9fa;padding:24px;border-radius:10px;display:flex;gap:20px;align-items:center;">
+      <div style="font-size:11px;color:#ccc;margin-right:4px;">#f8f9fa</div>
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M2 14 L5 14 L7 14 L9 8 L11 17 L13 11 L15 5 L17 11 L19 7 M16 4 L19 7 L22 4"/>
+      </svg>
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M2 10 L5 10 L7 10 L9 16 L11 7 L13 13 L15 19 L17 13 L19 17 M16 20 L19 17 L22 20"/>
+      </svg>
+    </div>
+
+    <!-- 카드 배경 -->
+    <div style="background:#242424;padding:24px;border-radius:10px;display:flex;gap:20px;align-items:center;">
+      <div style="font-size:11px;color:#444;margin-right:4px;">#242424</div>
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M2 14 L5 14 L7 14 L9 8 L11 17 L13 11 L15 5 L17 11 L19 7 M16 4 L19 7 L22 4"/>
+      </svg>
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M2 10 L5 10 L7 10 L9 16 L11 7 L13 13 L15 19 L17 13 L19 17 M16 20 L19 17 L22 20"/>
+      </svg>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════
+     FOOTER
+══════════════════════════════════════════════════════════ -->
+<div style="border-top:1px solid #222;padding-top:20px;margin-top:8px;display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#444;">
+  <span>Generated by Claude &nbsp;·&nbsp; SVG Icon Design Competition Entry</span>
+  <span>PulseUp / PulseDown · viewBox 0 0 24 24 · stroke-based · lucide-react compatible</span>
+</div>
+
+</body>
+</html>
