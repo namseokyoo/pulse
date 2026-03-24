@@ -1,5 +1,4 @@
 export const dynamic = "force-dynamic";
-export const revalidate = 10;
 
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
@@ -56,5 +55,10 @@ export async function GET() {
     authorId: p.author_id,
   }));
 
-  return NextResponse.json({ posts });
+  const response = NextResponse.json({ posts });
+  response.headers.set(
+    "Cache-Control",
+    "s-maxage=10, stale-while-revalidate=20"
+  );
+  return response;
 }
