@@ -46,7 +46,7 @@ export function PostCard({ post }: PostCardProps) {
         {/* 닉네임 + 남은 시간 */}
         <div className="flex items-center justify-between text-[13px] text-[var(--color-text-muted)] mb-3">
           <span>{post.nickname}</span>
-          <VitalityTimer expiresAt={post.expiresAt} size="sm" />
+          <VitalityTimer expiresAt={post.expiresAt} initialTtlMinutes={post.initialTtlMinutes ?? 360} size="sm" />
         </div>
 
         {/* 생명력 바 */}

@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { formatTimeRemaining, calculateVitality, getVitalityTextClass } from "@/lib/utils/vitality";
 import { cn } from "@/lib/utils/format";
+import { useGlobalTick } from "@/lib/hooks/useGlobalTick";
 
 export interface VitalityTimerProps {
   expiresAt: Date;
+  initialTtlMinutes?: number;
   size?: "sm" | "md" | "lg";
 }
 
@@ -15,21 +16,11 @@ const sizeClasses = {
   lg: "text-[16px] font-semibold",
 };
 
-export function VitalityTimer({ expiresAt, size = "md" }: VitalityTimerProps) {
-  const [timeStr, setTimeStr] = useState(() => formatTimeRemaining(expiresAt));
-  const [vitality, setVitality] = useState(() => calculateVitality(expiresAt));
+export function VitalityTimer({ expiresAt, initialTtlMinutes = 360, size = "md" }: VitalityTimerProps) {
+  useGlobalTick(); // 매초 리렌더 트리거 (이 컴포넌트만)
 
-  useEffect(() => {
-    const tick = () => {
-      setTimeStr(formatTimeRemaining(expiresAt));
-      setVitality(calculateVitality(expiresAt));
-    };
-
-    tick();
-    const interval = setInterval(tick, 1000);
-    return () => clearInterval(interval);
-  }, [expiresAt]);
-
+  const timeStr = formatTimeRemaining(expiresAt);
+  const vitality = calculateVitality(expiresAt, initialTtlMinutes);
   const colorClass = getVitalityTextClass(vitality);
 
   return (

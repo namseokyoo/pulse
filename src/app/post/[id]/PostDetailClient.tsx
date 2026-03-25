@@ -273,7 +273,7 @@ export function PostDetailClient({
           <div className="mb-3">
             <VitalityBar vitality={vitality} height={10} />
           </div>
-          <VitalityTimer expiresAt={post.expiresAt} size="lg" />
+          <VitalityTimer expiresAt={post.expiresAt} initialTtlMinutes={post.initialTtlMinutes ?? 360} size="lg" />
         </div>
 
         {/* 제목 + 본문 + 수정/삭제 메뉴 */}
