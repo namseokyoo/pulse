@@ -32,7 +32,7 @@ export function ProfileClient({ nickname, email, freeVotes, paidVotes, alivePost
   const supabase = createClient();
   const [tab, setTab] = useState("account");
   const [orders, setOrders] = useState<Array<{ id: string; product_qty: number; amount_krw: number; status: string; created_at: string }>>([]);
-  const [ordersLoading, setOrdersLoading] = useState(false);
+  const [ordersStatus, setOrdersStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [isEditingNickname, setIsEditingNickname] = useState(false);
   const [newNickname, setNewNickname] = useState(nickname);
   const [currentNickname, setCurrentNickname] = useState(nickname);
@@ -78,19 +78,24 @@ export function ProfileClient({ nickname, email, freeVotes, paidVotes, alivePost
   }, [currentNickname, isEditingNickname, newNickname, userId]);
 
   useEffect(() => {
+    if (tab !== "orders" || ordersStatus !== "idle") return;
     const fetchOrders = async () => {
-      setOrdersLoading(true);
-      const { data } = await supabase
-        .from("payment_orders")
-        .select("id, product_qty, amount_krw, status, created_at")
-        .order("created_at", { ascending: false })
-        .limit(20);
-      if (data) setOrders(data as typeof orders);
-      setOrdersLoading(false);
+      setOrdersStatus("loading");
+      try {
+        const { data } = await supabase
+          .from("payment_orders")
+          .select("id, product_qty, amount_krw, status, created_at")
+          .order("created_at", { ascending: false })
+          .limit(20);
+        if (data) setOrders(data as typeof orders);
+        setOrdersStatus("success");
+      } catch {
+        setOrdersStatus("error");
+      }
     };
     fetchOrders();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [tab, ordersStatus]);
 
   const handleSaveNickname = async () => {
     if (!newNickname.trim() || newNickname.trim() === currentNickname) {
@@ -310,8 +315,18 @@ export function ProfileClient({ nickname, email, freeVotes, paidVotes, alivePost
                 <a href="/purchase" className="text-[13px] text-[var(--color-primary)] hover:opacity-80 transition-opacity">투표권 구매 →</a>
                 */}
               </div>
-              {ordersLoading ? (
+              {ordersStatus === "loading" ? (
                 <p className="text-[14px] text-[var(--color-text-muted)] py-4 text-center">불러오는 중...</p>
+              ) : ordersStatus === "error" ? (
+                <div className="py-4 text-center">
+                  <p className="text-[14px] text-[var(--color-text-muted)] mb-2">불러오기에 실패했습니다</p>
+                  <button
+                    onClick={() => setOrdersStatus("idle")}
+                    className="text-[13px] text-[var(--color-primary)] hover:opacity-80"
+                  >
+                    다시 시도
+                  </button>
+                </div>
               ) : orders.length === 0 ? (
                 <p className="text-[14px] text-[var(--color-text-muted)] py-4 text-center">구매 내역이 없습니다</p>
               ) : (

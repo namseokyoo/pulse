@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
@@ -38,15 +39,18 @@ interface PostDetailPageProps {
   params: Promise<{ id: string }>;
 }
 
-export async function generateMetadata({ params }: PostDetailPageProps): Promise<Metadata> {
-  const { id } = await params;
+const getPost = cache(async (id: string) => {
   const supabase = await createClient();
-
-  const { data: post } = await supabase
+  return supabase
     .from("posts")
-    .select("title, content, is_dead, is_hidden, author_nickname, like_count, dislike_count")
+    .select("id, title, content, like_count, dislike_count, initial_ttl_minutes, expires_at, created_at, author_id, is_dead, is_hidden, edited_at, author_nickname")
     .eq("id", id)
     .single();
+});
+
+export async function generateMetadata({ params }: PostDetailPageProps): Promise<Metadata> {
+  const { id } = await params;
+  const { data: post } = await getPost(id);
 
   if (!post || post.is_hidden) {
     return {
@@ -99,13 +103,7 @@ export default async function PostDetailPage({ params }: PostDetailPageProps) {
     { data: gameRulesData },
   ] = await Promise.all([
     supabase.auth.getClaims(),
-    supabase
-      .from("posts")
-      .select(`
-        id, title, content, like_count, dislike_count, initial_ttl_minutes, expires_at, created_at, author_id, is_dead, is_hidden, edited_at, author_nickname
-      `)
-      .eq("id", id)
-      .single(),
+    getPost(id),
     supabase
       .from("comments")
       .select(`
