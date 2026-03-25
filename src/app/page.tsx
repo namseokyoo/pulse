@@ -1,5 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { FeedClient } from "./FeedClient";
+import { BottomNav } from "@/components/layout/BottomNav";
+import { VoteBadge } from "@/components/pulse/VoteBadge";
+import Link from "next/link";
 import type { Database, GameRules, PostType } from "@/types";
 
 export const dynamic = "force-dynamic";
@@ -94,5 +97,53 @@ export default async function FeedPage() {
     initialTtlMinutes: rules?.initial_ttl_minutes ?? 360,
   };
 
-  return <FeedClient initialPosts={posts} freeVotes={freeVotes} paidVotes={paidVotes} userId={userId} gameRules={gameRules} />;
+  return (
+    <div className="min-h-screen bg-[var(--color-background)]">
+      {/* 헤더 - Server Component */}
+      <header className="sticky top-0 z-20 bg-[var(--color-background)]/90 backdrop-blur-sm border-b border-[var(--color-border)]">
+        <div className="mx-auto max-w-[680px] px-4 h-14 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-full bg-[var(--color-primary)] flex items-center justify-center" aria-hidden="true">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+              </svg>
+            </div>
+            <span className="text-[18px] font-bold tracking-[0.05em] text-[var(--color-text-primary)]">
+              PULSEUP
+            </span>
+          </Link>
+          {/* 투표권 버튼 - Client Island */}
+          <VoteBadge freeVotes={freeVotes} paidVotes={paidVotes} userId={userId} />
+        </div>
+      </header>
+
+      {/* 규칙 배너 - Server Component (LCP 요소!) */}
+      {!userId && (
+        <div className="mx-auto max-w-[680px] px-4">
+          <div className="mb-4 p-4 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)] text-center">
+            <p className="text-[15px] text-[var(--color-text-primary)] font-semibold mb-2">
+              📌 PulseUp 규칙은 단 3가지
+            </p>
+            <div className="text-[13px] text-[var(--color-text-muted)] mb-3 space-y-1">
+              <p>1️⃣ 글은 {gameRules.initialTtlMinutes / 60}시간 후 자동으로 사라집니다</p>
+              <p>2️⃣ 좋아요 → 생명 연장 / 싫어요 → 생명 단축</p>
+              <p>3️⃣ 매일 투표권 {gameRules.dailyFreeVotes}개 무료 충전</p>
+            </div>
+            <Link
+              href="/login"
+              className="inline-block px-6 py-2.5 rounded-xl bg-[var(--color-primary)] text-white text-[14px] font-semibold"
+            >
+              지금 투표하기 — 투표권 {gameRules.dailyFreeVotes}개 무료
+            </Link>
+          </div>
+        </div>
+      )}
+
+      {/* 피드 - Client Component (인터랙티브 부분만) */}
+      <FeedClient initialPosts={posts} gameRules={gameRules} />
+
+      {/* 하단 네비 */}
+      <BottomNav />
+    </div>
+  );
 }
