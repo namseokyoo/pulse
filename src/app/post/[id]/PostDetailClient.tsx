@@ -67,6 +67,7 @@ export function PostDetailClient({
   const [showDeletePostConfirm, setShowDeletePostConfirm] = useState(false);
   const [showPostMenu, setShowPostMenu] = useState(false);
   const [postActionError, setPostActionError] = useState<string | null>(null);
+  const [vitalityHighlight, setVitalityHighlight] = useState(false);
 
   const handleVote = useCallback(async (type: "like" | "dislike", amount: number) => {
     if (!userId) {
@@ -109,6 +110,8 @@ export function PostDetailClient({
       setPost(newPost);
       setBalance(newBalance);
       setConfirmedPost(newPost);
+      setVitalityHighlight(true);
+      window.setTimeout(() => setVitalityHighlight(false), 500);
       setConfirmedBalance(newBalance);
 
       if (data.is_dead) {
@@ -271,7 +274,9 @@ export function PostDetailClient({
         <div className="mt-4 mb-6 p-4 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)]">
           <p className="text-[13px] text-[var(--color-text-muted)] mb-2">생명력</p>
           <div className="mb-3">
-            <VitalityBar vitality={vitality} height={10} />
+            <div style={vitalityHighlight ? { animation: "vitality-highlight 0.5s ease-in-out" } : {}}>
+              <VitalityBar vitality={vitality} height={10} />
+            </div>
           </div>
           <VitalityTimer expiresAt={post.expiresAt} initialTtlMinutes={post.initialTtlMinutes ?? 360} size="lg" />
         </div>

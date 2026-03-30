@@ -55,6 +55,7 @@ function CheckboxItem({
 
 export function OnboardingClient({ gameRules }: OnboardingClientProps) {
   const router = useRouter();
+  const [step, setStep] = useState<"agreement" | "action">("agreement");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [agreements, setAgreements] = useState({
@@ -106,8 +107,39 @@ export function OnboardingClient({ gameRules }: OnboardingClientProps) {
       return;
     }
 
-    router.push("/");
+    setIsLoading(false);
+    setStep("action");
   };
+
+  if (step === "action") {
+    return (
+      <div className="min-h-screen bg-[var(--color-background)] flex flex-col items-center py-12 px-4">
+        <div className="flex flex-col items-center justify-center flex-1 gap-3 w-full max-w-sm">
+          <div className="text-[48px]" aria-hidden="true">
+            🎉
+          </div>
+          <h1 className="text-[24px] font-bold text-[var(--color-text-primary)]">
+            준비 완료!
+          </h1>
+          <p className="text-[16px] text-[var(--color-text-secondary)] mb-8">
+            지금 바로 시작해보세요
+          </p>
+          <button
+            onClick={() => router.push("/")}
+            className="w-full py-4 px-6 rounded-2xl bg-[var(--color-primary)] text-white text-[16px] font-semibold mb-3"
+          >
+            🔥 살릴 글 찾아보기
+          </button>
+          <button
+            onClick={() => router.push("/write")}
+            className="w-full py-4 px-6 rounded-2xl border border-[var(--color-border)] text-[var(--color-text-primary)] text-[16px] font-semibold"
+          >
+            ✍️ 첫 글 써보기
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[var(--color-background)] flex flex-col items-center justify-between py-12 px-4">

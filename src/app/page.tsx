@@ -120,20 +120,25 @@ export default async function FeedPage() {
       {/* 규칙 배너 - Server Component (LCP 요소!) */}
       {!userId && (
         <div className="mx-auto max-w-[680px] px-4">
-          <div className="mb-4 p-4 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)] text-center">
-            <p className="text-[15px] text-[var(--color-text-primary)] font-semibold mb-2">
-              📌 PulseUp 규칙은 단 3가지
-            </p>
-            <div className="text-[13px] text-[var(--color-text-muted)] mb-3 space-y-1">
-              <p>1️⃣ 글은 {gameRules.initialTtlMinutes / 60}시간 후 자동으로 사라집니다</p>
-              <p>2️⃣ 좋아요 → 생명 연장 / 싫어요 → 생명 단축</p>
-              <p>3️⃣ 매일 투표권 {gameRules.dailyFreeVotes}개 무료 충전</p>
+          <div className="mb-4 p-5 rounded-2xl bg-[var(--color-surface)] border border-[var(--color-border)]">
+            <div className="space-y-2 mb-4">
+              <p className="text-[14px] text-[var(--color-text-secondary)] leading-relaxed">
+                <span className="text-[var(--color-text-primary)] font-semibold">① 모든 글은 6시간 후 사라진다</span>
+              </p>
+              <p className="text-[14px] text-[var(--color-text-secondary)] leading-relaxed">
+                ② 좋아요 = 생명 연장{" "}
+                <span className="text-[var(--color-text-muted)]">|</span>{" "}
+                싫어요 = 생명 단축
+              </p>
+              <p className="text-[14px] text-[var(--color-text-secondary)] leading-relaxed">
+                ③ 매일 투표권 {gameRules.dailyFreeVotes}개 무료 충전
+              </p>
             </div>
             <Link
               href="/login"
-              className="inline-block px-6 py-2.5 rounded-xl bg-[var(--color-primary)] text-white text-[14px] font-semibold"
+              className="block w-full text-center py-3 rounded-xl bg-[var(--color-primary)] text-white text-[14px] font-semibold"
             >
-              지금 투표하기 — 투표권 {gameRules.dailyFreeVotes}개 무료
+              지금 참여하기
             </Link>
           </div>
         </div>
