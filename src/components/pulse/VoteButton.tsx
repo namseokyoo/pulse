@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
 import { ThumbsDown, ThumbsUp } from "lucide-react";
 import { cn } from "@/lib/utils/format";
 
@@ -9,12 +8,20 @@ export interface VoteButtonProps {
   count: number;
   selected?: boolean;
   disabled?: boolean;
+  showFeedback?: boolean;
+  timeChangeMinutes?: number;
   onVote?: (amount: number) => void;
 }
 
-export function VoteButton({ type, count, selected = false, disabled = false, onVote }: VoteButtonProps) {
-  const [showFloatFeedback, setShowFloatFeedback] = useState(false);
-  const feedbackTimeoutRef = useRef<number | null>(null);
+export function VoteButton({
+  type,
+  count,
+  selected = false,
+  disabled = false,
+  showFeedback = false,
+  timeChangeMinutes = 10,
+  onVote,
+}: VoteButtonProps) {
   const isLike = type === "like";
   const colorBase = isLike
     ? "bg-[rgba(34,197,94,0.12)] text-[var(--color-like)] border-[rgba(34,197,94,0.2)]"
@@ -25,50 +32,22 @@ export function VoteButton({ type, count, selected = false, disabled = false, on
       : "bg-[rgba(239,68,68,0.25)] ring-1 ring-[var(--color-dislike)]"
     : "";
 
-  useEffect(() => {
-    return () => {
-      if (feedbackTimeoutRef.current !== null) {
-        window.clearTimeout(feedbackTimeoutRef.current);
-      }
-    };
-  }, []);
-
   const handleVote = () => {
     if (disabled || !onVote) return;
     onVote(1);
-    setShowFloatFeedback(true);
-    if (feedbackTimeoutRef.current !== null) {
-      window.clearTimeout(feedbackTimeoutRef.current);
-    }
-    feedbackTimeoutRef.current = window.setTimeout(() => {
-      setShowFloatFeedback(false);
-      feedbackTimeoutRef.current = null;
-    }, 700);
   };
 
   return (
     <div className="relative">
-      {showFloatFeedback && (
-        <span
-          style={{
-            position: "absolute",
-            top: "-28px",
-            left: "50%",
-            transform: "translateX(-50%)",
-            whiteSpace: "nowrap",
-            pointerEvents: "none",
-            fontSize: "14px",
-            fontWeight: 700,
-          }}
-        >
+      {showFeedback && (
+        <span className="vote-float-feedback" aria-hidden="true">
           <span
-            className={isLike ? "text-[var(--color-like)]" : "text-[var(--color-dislike)]"}
-            style={{
-              display: "inline-block",
-              animation: isLike ? "float-up 0.7s ease-out forwards" : "float-down 0.7s ease-out forwards",
-            }}
+            className={cn(
+              isLike ? "vote-float-animate-up" : "vote-float-animate-down",
+              isLike ? "text-[var(--color-like)]" : "text-[var(--color-dislike)]"
+            )}
           >
-            {isLike ? "+10분 ↑" : "-10분 ↓"}
+            {isLike ? `+${timeChangeMinutes}분 ↑` : `-${timeChangeMinutes}분 ↓`}
           </span>
         </span>
       )}

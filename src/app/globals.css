@@ -75,6 +75,39 @@
   --animate-slide-up: slide-up 0.3s ease-out;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  @keyframes float-up {
+    0% { opacity: 1; }
+    100% { opacity: 0; }
+  }
+
+  @keyframes float-down {
+    0% { opacity: 1; }
+    100% { opacity: 0; }
+  }
+}
+
+.vote-float-feedback {
+  position: absolute;
+  top: -28px;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  pointer-events: none;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.vote-float-animate-up {
+  display: inline-block;
+  animation: float-up 0.7s ease-out forwards;
+}
+
+.vote-float-animate-down {
+  display: inline-block;
+  animation: float-down 0.7s ease-out forwards;
+}
+
 @layer base {
   :root {
     color-scheme: dark;

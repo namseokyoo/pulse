@@ -68,6 +68,8 @@ export function PostDetailClient({
   const [showPostMenu, setShowPostMenu] = useState(false);
   const [postActionError, setPostActionError] = useState<string | null>(null);
   const [vitalityHighlight, setVitalityHighlight] = useState(false);
+  const [showLikeFeedback, setShowLikeFeedback] = useState(false);
+  const [showDislikeFeedback, setShowDislikeFeedback] = useState(false);
 
   const handleVote = useCallback(async (type: "like" | "dislike", amount: number) => {
     if (!userId) {
@@ -113,12 +115,19 @@ export function PostDetailClient({
       setVitalityHighlight(true);
       window.setTimeout(() => setVitalityHighlight(false), 500);
       setConfirmedBalance(newBalance);
+      if (type === "like") {
+        setShowLikeFeedback(true);
+        window.setTimeout(() => setShowLikeFeedback(false), 700);
+      } else {
+        setShowDislikeFeedback(true);
+        window.setTimeout(() => setShowDislikeFeedback(false), 700);
+      }
 
       if (data.is_dead) {
         router.refresh();
       }
     }
-  }, [userId, balance, post.id, confirmedPost, confirmedBalance, supabase, router]);
+  }, [userId, balance, post, confirmedPost, confirmedBalance, supabase, router]);
 
   const vitality = calculateVitality(post.expiresAt, post.initialTtlMinutes ?? 360);
 
@@ -408,6 +417,8 @@ export function PostDetailClient({
                 type="like"
                 count={post.likes}
                 disabled={userId ? balance === 0 : false}
+                showFeedback={showLikeFeedback}
+                timeChangeMinutes={gameRules.voteTimeChangeMinutes}
                 onVote={() => {
                   if (!userId) {
                     router.push("/login");
@@ -420,6 +431,8 @@ export function PostDetailClient({
                 type="dislike"
                 count={post.dislikes}
                 disabled={userId ? balance === 0 : false}
+                showFeedback={showDislikeFeedback}
+                timeChangeMinutes={gameRules.voteTimeChangeMinutes}
                 onVote={() => {
                   if (!userId) {
                     router.push("/login");
