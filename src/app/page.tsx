@@ -22,6 +22,15 @@ type PostWithProfile = {
 
 type GameRulesRow = Database["public"]["Tables"]["game_rules"]["Row"];
 
+function formatTtl(minutes: number): string {
+  const hours = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+
+  if (hours > 0 && mins > 0) return `${hours}시간 ${mins}분`;
+  if (hours > 0) return `${hours}시간`;
+  return `${mins}분`;
+}
+
 export default async function FeedPage() {
   const supabase = await createClient();
 
@@ -123,7 +132,7 @@ export default async function FeedPage() {
           <div className="mb-4 p-5 rounded-2xl bg-[var(--color-surface)] border border-[var(--color-border)]">
             <div className="space-y-2 mb-4">
               <p className="text-[14px] text-[var(--color-text-secondary)] leading-relaxed">
-                <span className="text-[var(--color-text-primary)] font-semibold">① 모든 글은 6시간 후 사라진다</span>
+                <span className="text-[var(--color-text-primary)] font-semibold">{`① 모든 글은 ${formatTtl(gameRules.initialTtlMinutes)} 후 사라진다`}</span>
               </p>
               <p className="text-[14px] text-[var(--color-text-secondary)] leading-relaxed">
                 ② 좋아요 = 생명 연장{" "}

@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { ThumbsDown, ThumbsUp } from "lucide-react";
 import { cn } from "@/lib/utils/format";
 
@@ -8,7 +9,7 @@ export interface VoteButtonProps {
   count: number;
   selected?: boolean;
   disabled?: boolean;
-  showFeedback?: boolean;
+  feedbackKey?: number;
   timeChangeMinutes?: number;
   onVote?: (amount: number) => void;
 }
@@ -18,10 +19,11 @@ export function VoteButton({
   count,
   selected = false,
   disabled = false,
-  showFeedback = false,
+  feedbackKey = 0,
   timeChangeMinutes = 10,
   onVote,
 }: VoteButtonProps) {
+  const [showFeedback, setShowFeedback] = useState(false);
   const isLike = type === "like";
   const colorBase = isLike
     ? "bg-[rgba(34,197,94,0.12)] text-[var(--color-like)] border-[rgba(34,197,94,0.2)]"
@@ -31,6 +33,15 @@ export function VoteButton({
       ? "bg-[rgba(34,197,94,0.25)] ring-1 ring-[var(--color-like)]"
       : "bg-[rgba(239,68,68,0.25)] ring-1 ring-[var(--color-dislike)]"
     : "";
+
+  useEffect(() => {
+    if (feedbackKey === 0) return;
+
+    setShowFeedback(true);
+    const timer = window.setTimeout(() => setShowFeedback(false), 700);
+
+    return () => window.clearTimeout(timer);
+  }, [feedbackKey]);
 
   const handleVote = () => {
     if (disabled || !onVote) return;

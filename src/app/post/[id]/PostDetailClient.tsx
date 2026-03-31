@@ -68,8 +68,8 @@ export function PostDetailClient({
   const [showPostMenu, setShowPostMenu] = useState(false);
   const [postActionError, setPostActionError] = useState<string | null>(null);
   const [vitalityHighlight, setVitalityHighlight] = useState(false);
-  const [showLikeFeedback, setShowLikeFeedback] = useState(false);
-  const [showDislikeFeedback, setShowDislikeFeedback] = useState(false);
+  const [likeFeedbackKey, setLikeFeedbackKey] = useState(0);
+  const [dislikeFeedbackKey, setDislikeFeedbackKey] = useState(0);
 
   const handleVote = useCallback(async (type: "like" | "dislike", amount: number) => {
     if (!userId) {
@@ -116,11 +116,9 @@ export function PostDetailClient({
       window.setTimeout(() => setVitalityHighlight(false), 500);
       setConfirmedBalance(newBalance);
       if (type === "like") {
-        setShowLikeFeedback(true);
-        window.setTimeout(() => setShowLikeFeedback(false), 700);
+        setLikeFeedbackKey((prev) => prev + 1);
       } else {
-        setShowDislikeFeedback(true);
-        window.setTimeout(() => setShowDislikeFeedback(false), 700);
+        setDislikeFeedbackKey((prev) => prev + 1);
       }
 
       if (data.is_dead) {
@@ -417,7 +415,7 @@ export function PostDetailClient({
                 type="like"
                 count={post.likes}
                 disabled={userId ? balance === 0 : false}
-                showFeedback={showLikeFeedback}
+                feedbackKey={likeFeedbackKey}
                 timeChangeMinutes={gameRules.voteTimeChangeMinutes}
                 onVote={() => {
                   if (!userId) {
@@ -431,7 +429,7 @@ export function PostDetailClient({
                 type="dislike"
                 count={post.dislikes}
                 disabled={userId ? balance === 0 : false}
-                showFeedback={showDislikeFeedback}
+                feedbackKey={dislikeFeedbackKey}
                 timeChangeMinutes={gameRules.voteTimeChangeMinutes}
                 onVote={() => {
                   if (!userId) {
