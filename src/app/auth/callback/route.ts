@@ -5,7 +5,8 @@ import type { Database } from "@/types";
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  const next = searchParams.get("next") ?? "/";
+  const rawNext = searchParams.get("next") ?? "/";
+  const next = rawNext.startsWith("/") && !rawNext.startsWith("//") ? rawNext : "/";
 
   const isLocalEnv = process.env.NODE_ENV === "development";
   // NEXT_PUBLIC_SITE_URL을 최우선으로 사용 (커스텀 도메인 보장)
